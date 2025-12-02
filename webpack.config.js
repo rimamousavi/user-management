@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 module.exports = {
   mode: "production",
   entry: {
-    index: "./src/index.js",
+    index: "./src/js/index.js",
   },
   output: {
     filename: "[name].[contenthash].js",
@@ -22,22 +22,19 @@ module.exports = {
       {
         test: /\.(png|jpg|jpeg|gif)$/i,
         type: "asset/resource",
-      },
+      }
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: "صفحه اصلی",
+      template: "./src/index.html",
       filename: "index.html",
-      template: "./src/template.html",
-      
     }),
   ],
   devServer: {
     static: "./dist",
     port: 3000,
     open: true,
-    
     hot: true,
   },
 

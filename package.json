@@ -7,7 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --mode production",
     "dev": "webpack serve --mode development"
-    
   },
   "keywords": [],
   "author": "",
@@ -25,6 +24,7 @@
     "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
-   
+    "handlebars": "^4.7.8",
+    "handlebars-loader": "^1.7.3"
   }
 }
