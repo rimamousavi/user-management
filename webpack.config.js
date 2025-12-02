@@ -17,7 +17,7 @@ module.exports = {
       
       {
         test: /\.css$/i,
-        use: ["style-loader", "css-loader", "postcss-loader"], // لودرها (ترتیب مهم است!)
+        use: ["style-loader", "css-loader", "postcss-loader"], 
       },
       {
         test: /\.(png|jpg|jpeg|gif)$/i,
@@ -30,13 +30,14 @@ module.exports = {
       title: "صفحه اصلی",
       filename: "index.html",
       template: "./src/template.html",
-      chunks: ["index"],
+      
     }),
   ],
   devServer: {
     static: "./dist",
     port: 3000,
     open: true,
+    
     hot: true,
   },
 
