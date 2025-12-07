@@ -1,20 +1,20 @@
 @font-face {
   font-family: "Inter";
-  src: url(/a3f2d257d8407bbbede7.woff2) format("woff2");
+  src: url(./a3f2d257d8407bbbede7.woff2) format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Inter";
-  src: url(/3db408952a8a32914124.woff2) format("woff2");
+  src: url(./3db408952a8a32914124.woff2) format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Inter";
-  src: url(/19873a15cf8af83ccda7.woff2) format("woff2");
+  src: url(./19873a15cf8af83ccda7.woff2) format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -765,6 +765,11 @@ input:checked + .slider:before {
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
+.appearance-none {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+}
 .flex-col {
   flex-direction: column;
 }
@@ -1113,6 +1118,32 @@ input:checked + .slider:before {
 
 .placeholder\:text-\[--muted-foreground\]::placeholder {
   color: var(--muted-foreground);
+}
+
+.checked\:border-neutral-900:checked {
+  --tw-border-opacity: 1;
+  border-color: rgb(23 23 23 / var(--tw-border-opacity, 1));
+}
+
+.checked\:bg-neutral-900:checked {
+  --tw-bg-opacity: 1;
+  background-color: rgb(23 23 23 / var(--tw-bg-opacity, 1));
+}
+
+.checked\:bg-\[url\(\'data\:image\/svg\+xml\;charset\=utf-8\2c \%3Csvg\%20xmlns\%3D\%22http\%3A\%2F\%2Fwww\.w3\.org\%2F2000\%2Fsvg\%22\%20viewBox\%3D\%220\%200\%2024\%2024\%22\%20fill\%3D\%22none\%22\%20stroke\%3D\%22white\%22\%20stroke-width\%3D\%224\%22\%20stroke-linecap\%3D\%22round\%22\%20stroke-linejoin\%3D\%22round\%22\%3E\%3Cpolyline\%20points\%3D\%2220\%206\%209\%2017\%204\%2012\%22\%2F\%3E\%3C\%2Fsvg\%3E\'\)\]:checked {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%2220%206%209%2017%204%2012%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.checked\:bg-center:checked {
+  background-position: center;
+}
+
+.checked\:bg-no-repeat:checked {
+  background-repeat: no-repeat;
+}
+
+.checked\:\[background-size\:100\%_100\%\]:checked {
+  background-size: 100% 100%;
 }
 
 .hover\:bg-\[--accent\]:hover {
