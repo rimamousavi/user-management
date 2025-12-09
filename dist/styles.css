@@ -728,8 +728,8 @@ input:focus + .slider {
 input:checked + .slider:before {
     transform: translateX(14px);
   }
-.pointer-events-none {
-  pointer-events: none;
+.fixed {
+  position: fixed;
 }
 .absolute {
   position: absolute;
@@ -737,23 +737,35 @@ input:checked + .slider:before {
 .relative {
   position: relative;
 }
+.inset-0 {
+  inset: 0px;
+}
 .left-3 {
   left: 0.75rem;
 }
 .top-1\/2 {
   top: 50%;
 }
+.z-50 {
+  z-index: 50;
+}
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
 .mb-6 {
   margin-bottom: 1.5rem;
-}
-.ml-2\.5 {
-  margin-left: 0.625rem;
 }
 .mr-2 {
   margin-right: 0.5rem;
 }
 .mt-4 {
   margin-top: 1rem;
+}
+.mt-6 {
+  margin-top: 1.5rem;
 }
 .block {
   display: block;
@@ -794,11 +806,11 @@ input:checked + .slider:before {
 .h-9 {
   height: 2.25rem;
 }
-.h-\[1\.15rem\] {
-  height: 1.15rem;
-}
 .w-4 {
   width: 1rem;
+}
+.w-44 {
+  width: 11rem;
 }
 .w-8 {
   width: 2rem;
@@ -815,6 +827,9 @@ input:checked + .slider:before {
 }
 .max-w-full {
   max-width: 100%;
+}
+.max-w-md {
+  max-width: 28rem;
 }
 .flex-1 {
   flex: 1 1 0%;
@@ -906,6 +921,9 @@ input:checked + .slider:before {
 .border {
   border-width: 1px;
 }
+.border-\[2px\] {
+  border-width: 2px;
+}
 .border-b {
   border-bottom-width: 1px;
 }
@@ -918,6 +936,10 @@ input:checked + .slider:before {
 .border-\[--input\] {
   border-color: var(--input);
 }
+.border-black {
+  --tw-border-opacity: 1;
+  border-color: rgb(0 0 0 / var(--tw-border-opacity, 1));
+}
 .border-gray-200 {
   --tw-border-opacity: 1;
   border-color: rgb(229 231 235 / var(--tw-border-opacity, 1));
@@ -928,9 +950,6 @@ input:checked + .slider:before {
 .bg-\[\#f7f9fa\] {
   --tw-bg-opacity: 1;
   background-color: rgb(247 249 250 / var(--tw-bg-opacity, 1));
-}
-.bg-\[--card\] {
-  background-color: var(--card);
 }
 .bg-\[--input-background\] {
   background-color: var(--input-background);
@@ -945,6 +964,9 @@ input:checked + .slider:before {
   --tw-bg-opacity: 1;
   background-color: rgb(0 0 0 / var(--tw-bg-opacity, 1));
 }
+.bg-black\/50 {
+  background-color: rgb(0 0 0 / 0.5);
+}
 .bg-gray-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
@@ -955,6 +977,9 @@ input:checked + .slider:before {
 }
 .p-4 {
   padding: 1rem;
+}
+.p-6 {
+  padding: 1.5rem;
 }
 .px-2 {
   padding-left: 0.5rem;
@@ -980,6 +1005,10 @@ input:checked + .slider:before {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
 .pl-10 {
   padding-left: 2.5rem;
 }
@@ -1003,6 +1032,10 @@ input:checked + .slider:before {
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
@@ -1013,8 +1046,15 @@ input:checked + .slider:before {
 .font-medium {
   font-weight: 500;
 }
+.font-semibold {
+  font-weight: 600;
+}
 .text-\[--primary-foreground\] {
   color: var(--primary-foreground);
+}
+.text-black {
+  --tw-text-opacity: 1;
+  color: rgb(0 0 0 / var(--tw-text-opacity, 1));
 }
 .text-gray-400 {
   --tw-text-opacity: 1;
@@ -1036,14 +1076,17 @@ input:checked + .slider:before {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
+.shadow-lg {
+  --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
 .outline-none {
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
-.ring-0 {
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+.filter {
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 .transition-\[color\2c box-shadow\] {
   transition-property: color,box-shadow;
@@ -1052,11 +1095,6 @@ input:checked + .slider:before {
 }
 .transition-all {
   transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-.transition-transform {
-  transition-property: transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -1149,6 +1187,10 @@ input:checked + .slider:before {
   color: var(--muted-foreground);
 }
 
+.hover\:border-black\/70:hover {
+  border-color: rgb(0 0 0 / 0.7);
+}
+
 .hover\:bg-\[--accent\]:hover {
   background-color: var(--accent);
 }
@@ -1164,6 +1206,11 @@ input:checked + .slider:before {
 
 .hover\:text-\[--accent-foreground\]:hover {
   color: var(--accent-foreground);
+}
+
+.hover\:text-gray-600:hover {
+  --tw-text-opacity: 1;
+  color: rgb(75 85 99 / var(--tw-text-opacity, 1));
 }
 
 .focus\:ring-0:focus {
@@ -1208,16 +1255,6 @@ input:checked + .slider:before {
   padding-right: 0.75rem;
 }
 
-.data-\[state\=checked\]\:translate-x-\[calc\(100\%-2px\)\][data-state="checked"] {
-  --tw-translate-x: calc(100% - 2px);
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.data-\[state\=unchecked\]\:translate-x-0[data-state="unchecked"] {
-  --tw-translate-x: 0px;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
 @media (min-width: 640px) {
 
   .sm\:flex {
@@ -1226,6 +1263,10 @@ input:checked + .slider:before {
 
   .sm\:w-64 {
     width: 16rem;
+  }
+
+  .sm\:w-auto {
+    width: auto;
   }
 
   .sm\:flex-row {
@@ -1298,17 +1339,6 @@ input:checked + .slider:before {
   .lg\:px-6 {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-
-  .dark\:data-\[state\=checked\]\:bg-\[--primary-foreground\][data-state="checked"] {
-    background-color: var(--primary-foreground);
-  }
-
-  .dark\:data-\[state\=unchecked\]\:bg-\[--card-foreground\][data-state="unchecked"] {
-    background-color: var(--card-foreground);
   }
 }
 
