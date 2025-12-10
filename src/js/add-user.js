@@ -169,7 +169,7 @@ function updateUserCount() {
   const users = GetUsers();
   const countElement = document.querySelector("tfoot p");
   if (countElement) {
-    countElement.textContent = `Showing 0–${users.length} of ${users.length} users`;
+    countElement.textContent = `Showing ${users.length} of ${users.length} users`;
   }
 }
 
