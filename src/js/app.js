@@ -16,19 +16,27 @@ class UserService {
       const response = await fetch(
         `${this.apiUrl}?page=${page}&limit=${limit}`
       );
-      console.error("user loaded");
-      return await response.json();
+      const users = await response.json();
+
+      // MockAPI تعداد کل آیتم‌ها را در هدر پاسخ ارسال نمی‌کند.
+      // برای حل این مشکل، یک درخواست اضافه برای شمارش کل کاربران ارسال می‌کنیم.
+      // این روش در API واقعی بهینه‌تر خواهد بود.
+
+      const allUsersResponse = await fetch(this.apiUrl);
+      const allUsers = await allUsersResponse.json();
+      const totalCount = allUsers.length;
+
+      return { users, totalCount };
     } catch (error) {
       console.error("Error fetching users:", error);
-      return [];
+      return { users: [], totalCount: 0 };
     }
   }
 
   async findUserById(userId) {
     try {
       const response = await fetch(`${this.apiUrl}/${userId}`);
-      const jsonResponse = await response.json();
-      return jsonResponse;
+      return await response.json();
     } catch (error) {
       console.error("Error fetching user:", error);
       return null;
@@ -42,7 +50,6 @@ class UserService {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(userData),
       });
-      console.log("User added successfully to mockapi.io");
       return await response.json();
     } catch (error) {
       console.error("Error adding user:", error);
@@ -56,7 +63,6 @@ class UserService {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(userData),
       });
-      console.log("User updated successfully on mockapi.io");
       return await response.json();
     } catch (error) {
       console.error("Error updating user:", error);
@@ -68,12 +74,7 @@ class UserService {
       const response = await fetch(`${this.apiUrl}/${userId}`, {
         method: "DELETE",
       });
-
-      if (response.status === 204) {
-        console.log("User deleted successfully on mockapi.io");
-        return true;
-      }
-      return false;
+      return response.ok;
     } catch (error) {
       console.error("Error deleting user:", error);
       return false;
@@ -84,17 +85,14 @@ class UserService {
 class App {
   constructor(userService) {
     this.userService = userService;
-
     this.currentPage = 1;
     this.itemsPerPage = 5;
     this.totalUsers = 0;
-
     this.isEditMode = false;
     this.editingUserId = null;
 
     this._initDOMElements();
     this._initEventListeners();
-
     this.displayUsers();
   }
 
@@ -107,7 +105,6 @@ class App {
     this.closeFormBtn = document.getElementById("closeFormBtn");
     this.cancelBtn = document.getElementById("cancelBtn");
     this.userTableBody = document.querySelector("table tbody");
-
     this.prevBtn = document.getElementById("prev-btn");
     this.nextBtn = document.getElementById("next-btn");
     this.pageButtonsContainer = document.getElementById(
@@ -123,7 +120,6 @@ class App {
     this.userModal.addEventListener("click", (e) => {
       if (e.target === this.userModal) this.closeModal();
     });
-
     this.userForm.addEventListener("submit", (e) => this.handleFormSubmit(e));
     this.userTableBody.addEventListener("click", (e) =>
       this.handleTableClick(e)
@@ -139,13 +135,12 @@ class App {
   async openModal(mode, userId = null) {
     this.isEditMode = mode === "edit";
     this.editingUserId = userId;
+    this.userForm.reset();
 
     if (this.isEditMode) {
       this.modalTitle.textContent = "Edit User";
       this.submitButton.textContent = "Save Changes";
-
       const userToEdit = await this.userService.findUserById(userId);
-
       if (userToEdit) {
         document.getElementById("fullName").value = userToEdit.name;
         document.getElementById("email").value = userToEdit.email;
@@ -155,7 +150,6 @@ class App {
     } else {
       this.modalTitle.textContent = "Add New User";
       this.submitButton.textContent = "Add User";
-      this.userForm.reset();
     }
     this.userModal.classList.remove("hidden");
   }
@@ -166,26 +160,23 @@ class App {
 
   async displayUsers() {
     this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">Loading...</td></tr>`;
-    const users = await this.userService.getUsers(
+
+    const { users, totalCount } = await this.userService.getUsers(
       this.currentPage,
       this.itemsPerPage
     );
+    this.totalUsers = totalCount;
     this.userTableBody.innerHTML = "";
 
-    if (this.pageInfo) this.pageInfo.textContent = `Page ${this.currentPage}`;
-    if (this.prevBtn) this.prevBtn.disabled = this.currentPage === 1;
-    if (this.nextBtn) this.nextBtn.disabled = users.length < this.itemsPerPage;
-
     if (users.length === 0 && this.currentPage > 1) {
-      this.goToPrevPage();
+      this.goToPage(this.currentPage - 1);
       return;
     }
-
     if (users.length === 0) {
       this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
+      this.renderPagination();
       return;
     }
-
     users.forEach((user) => {
       const initials = user.name
         .split(" ")
@@ -249,6 +240,7 @@ class App {
       `;
       this.userTableBody.innerHTML += row;
     });
+    this.renderPagination();
   }
 
   // --- Pagination ---
@@ -262,20 +254,50 @@ class App {
   }
   goToPrevPage() {
     if (this.currentPage > 1) {
-      this.currentPage--;
-      this.displayUsers();
+      this.goToPage(this.currentPage - 1);
     }
   }
 
   goToNextPage() {
-    if (!this.nextBtn.disabled) {
-      this.currentPage++;
-      this.displayUsers();
+    const totalPages = Math.ceil(this.totalUsers / this.itemsPerPage);
+    if (this.currentPage < totalPages) {
+      this.goToPage(this.currentPage + 1);
     }
   }
   goToPage(page) {
     this.currentPage = page;
     this.displayUsers();
+  }
+
+  renderPagination() {
+    const totalPages = Math.ceil(this.totalUsers / this.itemsPerPage);
+    this.pageButtonsContainer.innerHTML = "";
+
+    // تولید دکمه‌های شماره صفحات
+    for (let i = 1; i <= totalPages; i++) {
+      const button = document.createElement("button");
+      button.textContent = i;
+      button.dataset.page = i;
+      button.className = `pagination-button page-number-btn ${i === this.currentPage ? "bg-gray-200" : ""}`;
+      this.pageButtonsContainer.appendChild(button);
+    }
+
+    // فعال/غیرفعال کردن دکمه‌های Next/Previous
+    this.prevBtn.disabled = this.currentPage === 1;
+    this.nextBtn.disabled = this.currentPage === totalPages || totalPages === 0;
+
+    // به‌روزرسانی خلاصه pagination
+    const start = (this.currentPage - 1) * this.itemsPerPage + 1;
+    const end = Math.min(start + this.itemsPerPage - 1, this.totalUsers);
+    this.paginationSummary.textContent = `Showing ${this.totalUsers > 0 ? start : 0}–${end} of ${this.totalUsers} users`;
+  }
+  handlePageNumberClick(event) {
+    if (event.target.classList.contains("page-number-btn")) {
+      const page = parseInt(event.target.dataset.page);
+      if (page !== this.currentPage) {
+        this.goToPage(page);
+      }
+    }
   }
 
   async handleFormSubmit(event) {
@@ -292,11 +314,12 @@ class App {
       await this.userService.updateUser(this.editingUserId, formData);
     } else {
       await this.userService.addUser(formData);
+      // برای رفتن به صفحه‌ای که کاربر جدید در آن قرار دارد (معمولا صفحه آخر)
+      this.currentPage = Math.ceil((this.totalUsers + 1) / this.itemsPerPage);
     }
 
     this.submitButton.disabled = false;
     this.closeModal();
-
     await this.displayUsers();
   }
 
@@ -305,13 +328,15 @@ class App {
     const deleteBtn = event.target.closest(".delete-btn");
 
     if (editBtn) {
-      const userId = parseInt(editBtn.dataset.id);
+      const userId = editBtn.dataset.id;
       this.openModal("edit", userId);
     }
+
     if (deleteBtn) {
-      const userId = parseInt(deleteBtn.dataset.id);
+      const userId = deleteBtn.dataset.id;
       if (confirm("Are you sure you want to delete this user?")) {
         await this.userService.deleteUser(userId);
+        // پس از حذف، صفحه فعلی را مجددا بارگذاری کن
         await this.displayUsers();
       }
     }
