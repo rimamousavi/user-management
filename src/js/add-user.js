@@ -1,96 +1,92 @@
-// Elements
-const openFormBtn = document.getElementById("openFormBtn");
-const closeFormBtn = document.getElementById("closeFormBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-const userModal = document.getElementById("userModal");
-const userForm = document.getElementById("userForm");
-
-// Services
-
-function GetUsers() {
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  return users;
-}
-
-function SaveUsers(users) {
-  localStorage.setItem("users", JSON.stringify(users));
-}
-
-function DeleteUser(userId) {
-  let users = GetUsers();
-  users = users.filter((u) => u.id !== userId);
-  SaveUsers(users);
-}
-
-function AddUser(user) {
-  let users = GetUsers();
-  users.push(user);
-  SaveUsers(users);
-}
-
-function updateUser(userId, newUser) {
-  let users = GetUsers();
-  users = users.map((u) => {
-    if (u.id === userId) {
-      return { ...u, ...newUser };
-    }
-    return u;
-  });
-  SaveUsers(users);
-}
-
-// Event Listeners
-
-openFormBtn.addEventListener("click", function () {
-  userModal.classList.remove("hidden");
+// صبر می‌کنیم تا کل محتوای HTML بارگذاری شود
+document.addEventListener("DOMContentLoaded", () => {
+  displayUsers(); 
 });
 
-function closeModal() {
-  userModal.classList.add("hidden");
-  userForm.reset();
-}
+  const addUserBtn = document.getElementById("openFormBtn");
+  const userModal = document.getElementById("userModal");
+  const userForm = document.getElementById("userForm");
+  const modalTitle = userModal.querySelector("h2");
+  const submitButton = document.getElementById("submit");
+  const closeFormBtn = document.getElementById("closeFormBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const userTableBody = document.querySelector("table tbody");
 
-closeFormBtn.addEventListener("click", closeModal);
-cancelBtn.addEventListener("click", closeModal);
+  let isEditMode = false;
+  let editingUserId = null;
 
-userModal.addEventListener("click", function (e) {
-  if (e.target === userModal) {
-    closeModal();
+  const USERS_STORAGE_KEY = "users_list";
+//Service Functions 6تا تابع 
+  function GetData(key) {
+    const data = JSON.parse(localStorage.getItem(key)) || [];
+    return data;
   }
-});
 
-userForm.addEventListener("submit", function (e) {
-  e.preventDefault();
+  function SaveData(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
 
-  const newUser = {
-    id: Date.now(),
-    fullName: document.getElementById("fullName").value,
-    email: document.getElementById("email").value,
-    phone: document.getElementById("phone").value,
-    role: document.getElementById("role").value,
-    status: "Active",
-    lastLogin: new Date().toLocaleString("fa-IR"),
-  };
+  function GetUsers() {
+    return GetData(USERS_STORAGE_KEY);
+  }
 
-  AddUser(newUser);
+  function AddUser(user) {
+    const users = GetUsers();
+    users.push(user);
+    SaveData(USERS_STORAGE_KEY, users);
+  }
 
-  displayUsers();
+  function DeleteUser(userId) {
+    let users = GetUsers();
+    users = users.filter(user => user.id !== userId);
+    SaveData(USERS_STORAGE_KEY, users);
+  }
 
-  closeModal();
-});
+  function UpdateUser(userId, updatedData) {
+    let users = GetUsers();
+    users = users.map(user => (user.id === userId ? { ...user, ...updatedData } : user));
+    SaveData(USERS_STORAGE_KEY, users);
+  }
+//UI Functions 4تابع  مسئول نمایش و مدیریت ظاهر
+  function openModal(mode, userId = null) {
+    isEditMode = (mode === 'edit');
+    editingUserId = userId;
 
-function displayUsers() {
-  const users = GetUsers();
-  const tbody = document.querySelector("table tbody");
+    if (isEditMode) {
+      modalTitle.textContent = "Edit User";
+      submitButton.textContent = "Save Changes";
+      const userToEdit = GetUsers().find(u => u.id === userId);
+      if (userToEdit) {
+        document.getElementById("fullName").value = userToEdit.fullName;
+        document.getElementById("email").value = userToEdit.email;
+        document.getElementById("phone").value = userToEdit.phone;
+        document.getElementById("role").value = userToEdit.role;
+      }
+    } else {
+      modalTitle.textContent = "Add New User";
+      submitButton.textContent = "Add User";
+      userForm.reset();
+    }
+    userModal.classList.remove("hidden");
+  }
 
-  let userTemplate = "";
+  function closeModal() {
+    userModal.classList.add("hidden");
+  }
 
-  users.forEach((user) => {
-    const initials = user.fullName
-      .split(" ")
-      .map((n) => n[0])
-      .join("");
-    const row = `
+  function displayUsers() {
+    userTableBody.innerHTML = "";
+    const users = GetUsers();
+    updateUserCount(users.length);
+
+    if (users.length === 0) {
+      userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found. Click 'Add User' to start.</td></tr>`;
+      return;
+    }
+
+    users.forEach(user => {
+      const initials = user.fullName.split(" ").map(n => n[0]).join("");
+      const row = `
         <tr class="hover:bg-gray-50 [&_tr:last-child]:border-0">
           <td class="td">
             <label class="check-container">
@@ -144,36 +140,70 @@ function displayUsers() {
           </td>
         </tr>
       `;
-    userTemplate += row;
-  });
-
-  tbody.innerHTML = userTemplate;
-
-  document.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      deleteUser(parseInt(this.dataset.id));
+      userTableBody.innerHTML += row;
     });
+  }
+
+  function updateUserCount(count) {
+    const countElement = document.querySelector("tfoot p");
+    if (countElement) {
+      countElement.textContent = `Showing ${count} of ${count} users`;
+    }
+  }
+
+//Event Handlers 4تابع ناشناس
+
+  // باز کردن مودال برای افزودن
+  addUserBtn.addEventListener("click", () => openModal('add'));
+
+  // بستن مودال
+  closeFormBtn.addEventListener("click", closeModal);
+  cancelBtn.addEventListener("click", closeModal);
+  userModal.addEventListener("click", e => {
+    if (e.target === userModal) closeModal();
   });
 
-  updateUserCount();
-}
+// ساخت  آبجکت کاربر برای اضافه و ویرایش و پاس دادن یه توابع دیگه
+  userForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const formData = {
+      fullName: document.getElementById("fullName").value,
+      email: document.getElementById("email").value,
+      phone: document.getElementById("phone").value,
+      role: document.getElementById("role").value,
+    };
 
-function deleteUser(userId) {
-  if (confirm("are you sure?")) {
-    DeleteUser(userId);
+    if (isEditMode) {
+      UpdateUser(editingUserId, formData);
+    } else {
+      const newUser = {
+        ...formData,
+        id: Date.now(),
+        status: "Active",
+        lastLogin: new Date().toLocaleString("fa-IR"),
+      };
+      AddUser(newUser);
+    }
+    closeModal();
     displayUsers();
-  }
-}
+  });
 
-function updateUserCount() {
-  const users = GetUsers();
-  const countElement = document.querySelector("tfoot p");
-  if (countElement) {
-    countElement.textContent = `Showing ${users.length} of ${users.length} users`;
-  }
-}
+ //برای هندل کردن دکمه های ادیت و دیلیت 
+  userTableBody.addEventListener("click", e => {
+    const editBtn = e.target.closest(".edit-btn");
+    const deleteBtn = e.target.closest(".delete-btn");
 
-// Bootstrap
-document.addEventListener("DOMContentLoaded", function () {
-  displayUsers();
-});
+    if (editBtn) {
+      const userId = parseInt(editBtn.dataset.id);
+      openModal('edit', userId);
+    }
+
+    if (deleteBtn) {
+      const userId = parseInt(deleteBtn.dataset.id);
+      if (confirm("Are you sure you want to delete this user?")) {
+        DeleteUser(userId);
+        displayUsers();
+      }
+    }
+  });
+
