@@ -11,20 +11,30 @@ class UserService {
     this.apiUrl = apiUrl;
   }
 
-  async getUsers(page = 1, limit = 5) {
+  async getUsers(page, limit, filters) {
     try {
-      const response = await fetch(
-        `${this.apiUrl}?page=${page}&limit=${limit}`
-      );
+      const url = new URL(this.apiUrl);
+      if (page) url.searchParams.append("page", page);
+      if (limit) url.searchParams.append("limit", limit);
+
+      filters = filters || {};
+      if (filters.search) url.searchParams.append("search", filters.search);
+      if (filters.role) url.searchParams.append("role", filters.role);
+      if (filters.status) url.searchParams.append("status", filters.status);
+
+      const response = await fetch(url.toString());
       const users = await response.json();
 
-      // MockAPI تعداد کل آیتم‌ها را در هدر پاسخ ارسال نمی‌کند.
-      // برای حل این مشکل، یک درخواست اضافه برای شمارش کل کاربران ارسال می‌کنیم.
-      // این روش در API واقعی بهینه‌تر خواهد بود.
+      const countUrl = new URL(this.apiUrl);
+      if (filters.search)
+        countUrl.searchParams.append("search", filters.search);
+      if (filters.role) countUrl.searchParams.append("role", filters.role);
+      if (filters.status)
+        countUrl.searchParams.append("status", filters.status);
 
-      const allUsersResponse = await fetch(this.apiUrl);
+      const allUsersResponse = await fetch(countUrl.toString());
       const allUsers = await allUsersResponse.json();
-      const totalCount = allUsers.length;
+      const totalCount = Array.isArray(allUsers) ? allUsers.length : 0;
 
       return { users, totalCount };
     } catch (error) {
@@ -90,6 +100,7 @@ class App {
     this.totalUsers = 0;
     this.isEditMode = false;
     this.editingUserId = null;
+    this.currentFilters = { search: "", role: "", status: "" };
 
     this._initDOMElements();
     this._initEventListeners();
@@ -97,6 +108,8 @@ class App {
   }
 
   _initDOMElements() {
+    this.rolesFilter = document.getElementById("roles-filter");
+    this.statusFilter = document.getElementById("status-filter");
     this.addUserBtn = document.getElementById("openFormBtn");
     this.userModal = document.getElementById("userModal");
     this.userForm = document.getElementById("userForm");
@@ -114,6 +127,8 @@ class App {
   }
 
   _initEventListeners() {
+    this.rolesFilter.addEventListener("change", (e) => this.RolesFilter(e));
+    this.statusFilter.addEventListener("change", (e) => this.StatusFilter(e));
     this.addUserBtn.addEventListener("click", () => this.openModal("add"));
     this.closeFormBtn.addEventListener("click", () => this.closeModal());
     this.cancelBtn.addEventListener("click", () => this.closeModal());
@@ -132,6 +147,20 @@ class App {
   }
 
   // --- متدهای UI ---
+  RolesFilter(e) {
+    // پیاده‌سازی فیلتر بر اساس نقش کاربر
+    this.currentFilters.role = e.target.value || "";
+
+    this.currentPage = 1;
+    this.displayUsers();
+  }
+  StatusFilter(e) {
+    // پیاده‌سازی فیلتر بر اساس وضعیت کاربر
+    this.currentFilters.status = e.target.value || "";
+    this.currentPage = 1;
+    this.displayUsers();
+  }
+
   async openModal(mode, userId = null) {
     this.isEditMode = mode === "edit";
     this.editingUserId = userId;
@@ -160,13 +189,12 @@ class App {
 
   async displayUsers() {
     this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">Loading...</td></tr>`;
-
     const { users, totalCount } = await this.userService.getUsers(
       this.currentPage,
-      this.itemsPerPage
+      this.itemsPerPage,
+      this.currentFilters
     );
     this.totalUsers = totalCount;
-    this.userTableBody.innerHTML = "";
 
     if (users.length === 0 && this.currentPage > 1) {
       this.goToPage(this.currentPage - 1);
@@ -177,7 +205,14 @@ class App {
       this.renderPagination();
       return;
     }
-    users.forEach((user) => {
+    this.updateTable(users);
+    this.renderPagination();
+  }
+
+  updateTable(list) {
+    console.log("Updating table with users:", list);
+    this.userTableBody.innerHTML = "";
+    list.forEach((user) => {
       const initials = user.name
         .split(" ")
         .map((n) => n[0])
@@ -212,7 +247,7 @@ class App {
                 <span class="slider round"></span>
               </label>
               <span class="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 gap-1 focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px] dark:aria-invalid:ring-[--destructive]/40 transition-[color,box-shadow] overflow-hidden border-transparent bg-[--primary] text-[--primary-foreground] [a&]:hover:bg-[--primary]/90">
-                Active
+                ${user.status}
               </span>
             </div>
           </td>
@@ -240,7 +275,6 @@ class App {
       `;
       this.userTableBody.innerHTML += row;
     });
-    this.renderPagination();
   }
 
   // --- Pagination ---
@@ -289,16 +323,17 @@ class App {
     // به‌روزرسانی خلاصه pagination
     const start = (this.currentPage - 1) * this.itemsPerPage + 1;
     const end = Math.min(start + this.itemsPerPage - 1, this.totalUsers);
-    this.paginationSummary.textContent = `Showing ${this.totalUsers > 0 ? start : 0}–${end} of ${this.totalUsers} users`;
+    this.paginationSummary.textContent = `Showing ${this.totalUsers > 0 ? start : 0} – ${end} of ${this.totalUsers} users`;
   }
-  handlePageNumberClick(event) {
-    if (event.target.classList.contains("page-number-btn")) {
-      const page = parseInt(event.target.dataset.page);
-      if (page !== this.currentPage) {
-        this.goToPage(page);
-      }
-    }
-  }
+
+  // handlePageNumberClick(event) {
+  //   if (event.target.classList.contains("page-number-btn")) {
+  //     const page = parseInt(event.target.dataset.page);
+  //     if (page !== this.currentPage) {
+  //       this.goToPage(page);
+  //     }
+  //   }
+  // }
 
   async handleFormSubmit(event) {
     event.preventDefault();
@@ -306,7 +341,10 @@ class App {
       name: document.getElementById("fullName").value,
       email: document.getElementById("email").value,
       phone: document.getElementById("phone").value,
-      role: document.getElementById("role").value,
+      role:
+        document.getElementById("role").value === "Select a role"
+          ? "user"
+          : document.getElementById("role").value,
     };
     this.submitButton.disabled = true;
 

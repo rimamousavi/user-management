@@ -130,10 +130,9 @@
                         id="role"
                         class="font-medium text-sm custom-select w-full border rounded-md px-3 py-2 outline-none focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px]"
                       >
-                        <option value="">Select a role</option>
+                        <option>Select a role</option>
                         <option value="admin">Admin</option>
-                        <option value="pilot">Pilot</option>
-                        <option value="technician">Technician</option>
+                        <option value="user">User</option>
                       </select>
                     </div>
                     <div class="flex justify-between gap-4 mt-6">
@@ -191,17 +190,20 @@
             <div
               class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3"
             >
-              <select name="roles" id="roles" class="custom-select">
-                <option value="roles">All Roles</option>
-                <option value="pilot">Pilot</option>
-                <option value="admin">Admin</option>
-                <option value="technician">Technician</option>
-              </select>
-              <select name="status" id="status" class="custom-select">
-                <option value="status">All Status</option>
-                <option value="pilot">Active</option>
-                <option value="admin">Inactive</option>
-              </select>
+              <div id="roles-filter">
+                <select name="roles" id="roles" class="custom-select">
+                  <option value="">All Roles</option>
+                  <option value="admin">Admin</option>
+                  <option value="user">User</option>
+                </select>
+              </div>
+              <div id="status-filter">
+                <select name="status" id="status" class="custom-select">
+                  <option value="">All Status</option>
+                  <option value="pilot">Active</option>
+                  <option value="admin">Inactive</option>
+                </select>
+              </div>
             </div>
           </div>
           <div class="flex items-center gap-2">
