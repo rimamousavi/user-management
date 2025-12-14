@@ -356,7 +356,7 @@
                 </td>
               </tr> -->
             </tbody>
-            <tfoot class="border-t border-gray-200">
+            <!-- <tfoot class="border-t border-gray-200">
               <tr>
                 <td colspan="9" class="p-4">
                   <div
@@ -369,12 +369,17 @@
                     </div>
                     <div class="flex items-center space-x-2">
                       <button
+                        id="prev-btn"
                         data-slot="button"
                         class="pagination-button"
                         disabled=""
                       >
                         Previous
                       </button>
+                      <div
+                        id="page-buttons-container"
+                        class="flex items-center space-x-2"
+                      ></div>
                       <button
                         data-slot="button"
                         class="pagination-button bg-gray-100"
@@ -387,7 +392,41 @@
                       <button data-slot="button" class="pagination-button">
                         3
                       </button>
-                      <button data-slot="button" class="pagination-button" ;>
+                      <button
+                        id="next-btn"
+                        data-slot="button"
+                        class="pagination-button"
+                        ;
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tfoot> -->
+            <!-- نسخه صحیح و ساده شده tfoot -->
+            <tfoot class="border-t">
+              <tr>
+                <td colspan="9" class="p-4">
+                  <div
+                    class="flex flex-col sm:flex-row sm:items-center justify-between"
+                  >
+                    <div>
+                      <p
+                        id="pagination-summary"
+                        class="text-sm text-gray-600"
+                      ></p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <button id="prev-btn" class="pagination-button" disabled>
+                        Previous
+                      </button>
+                      <div
+                        id="page-buttons-container"
+                        class="flex items-center space-x-2"
+                      ></div>
+                      <button id="next-btn" class="pagination-button">
                         Next
                       </button>
                     </div>

@@ -1,85 +1,93 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const API_URL = "https://jsonplaceholder.typicode.com/users";
- 
+  const API_URL = "https://693e775f12c964ee6b6d71d4.mockapi.io/api/v1/users";
+
   const userService = new UserService(API_URL);
 
   new App(userService);
 });
-class UserService {
 
+class UserService {
   constructor(apiUrl) {
     this.apiUrl = apiUrl;
   }
 
-
-  async getUsers() {
+  async getUsers(page = 1, limit = 5) {
     try {
-      const response = await fetch(this.apiUrl); // 1. درخواست را به سرور بفرست
-      const users = await response.json(); // 2. جواب را به فرمت JSON تبدیل کن
-      return users;
+      const response = await fetch(
+        `${this.apiUrl}?page=${page}&limit=${limit}`
+      );
+      console.error("user loaded");
+      return await response.json();
     } catch (error) {
       console.error("Error fetching users:", error);
-      return []; // در صورت خطا، یک آرایه خالی برگردان
+      return [];
     }
   }
 
-  // متد برای افزودن کاربر جدید به سرور
-  async addUser(user) {
+  async findUserById(userId) {
     try {
-      await fetch(this.apiUrl, {
-        method: 'POST', // نوع درخواست
-        headers: {
-          'Content-Type': 'application/json', // به سرور میگوییم که داریم JSON می‌فرستیم
-        },
-        body: JSON.stringify(user), // آبجکت کاربر را به متن JSON تبدیل کن
+      const response = await fetch(`${this.apiUrl}/${userId}`);
+      const jsonResponse = await response.json();
+      return jsonResponse;
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return null;
+    }
+  }
+
+  async addUser(userData) {
+    try {
+      const response = await fetch(this.apiUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(userData),
       });
+      console.log("User added successfully to mockapi.io");
+      return await response.json();
     } catch (error) {
       console.error("Error adding user:", error);
     }
   }
 
-  // متد برای حذف کاربر از سرور
-  async deleteUser(userId) {
+  async updateUser(userId, userData) {
     try {
-      await fetch(`${this.apiUrl}/${userId}`, {
-        method: 'DELETE', // نوع درخواست
+      const response = await fetch(`${this.apiUrl}/${userId}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(userData),
       });
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    }
-  }
-
-  // متد برای آپدیت کاربر در سرور
-  async updateUser(userId, updatedData) {
-    try {
-      await fetch(`${this.apiUrl}/${userId}`, {
-        method: 'PUT', // یا 'PATCH'
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedData),
-      });
+      console.log("User updated successfully on mockapi.io");
+      return await response.json();
     } catch (error) {
       console.error("Error updating user:", error);
     }
   }
-  
-  // متد برای پیدا کردن یک کاربر
-  async findUserById(userId) {
+
+  async deleteUser(userId) {
     try {
-      const response = await fetch(`${this.apiUrl}/${userId}`);
-      const user = await response.json();
-      return user;
+      const response = await fetch(`${this.apiUrl}/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (response.status === 204) {
+        console.log("User deleted successfully on mockapi.io");
+        return true;
+      }
+      return false;
     } catch (error) {
-      console.error("Error fetching user:", error);
-      return null;
+      console.error("Error deleting user:", error);
+      return false;
     }
   }
 }
 
 class App {
   constructor(userService) {
-    this.userService = userService; 
+    this.userService = userService;
+
+    this.currentPage = 1;
+    this.itemsPerPage = 5;
+    this.totalUsers = 0;
 
     this.isEditMode = false;
     this.editingUserId = null;
@@ -87,9 +95,8 @@ class App {
     this._initDOMElements();
     this._initEventListeners();
 
-    this.displayUsers(); 
+    this.displayUsers();
   }
-
 
   _initDOMElements() {
     this.addUserBtn = document.getElementById("openFormBtn");
@@ -100,24 +107,37 @@ class App {
     this.closeFormBtn = document.getElementById("closeFormBtn");
     this.cancelBtn = document.getElementById("cancelBtn");
     this.userTableBody = document.querySelector("table tbody");
+
+    this.prevBtn = document.getElementById("prev-btn");
+    this.nextBtn = document.getElementById("next-btn");
+    this.pageButtonsContainer = document.getElementById(
+      "page-buttons-container"
+    );
+    this.paginationSummary = document.getElementById("pagination-summary");
   }
 
-  // متد خصوصی برای اتصال Event Listener ها
   _initEventListeners() {
-    this.addUserBtn.addEventListener("click", () => this.openModal('add'));
+    this.addUserBtn.addEventListener("click", () => this.openModal("add"));
     this.closeFormBtn.addEventListener("click", () => this.closeModal());
     this.cancelBtn.addEventListener("click", () => this.closeModal());
-    this.userModal.addEventListener("click", e => {
+    this.userModal.addEventListener("click", (e) => {
       if (e.target === this.userModal) this.closeModal();
     });
 
-    this.userForm.addEventListener("submit", e => this.handleFormSubmit(e));
-    this.userTableBody.addEventListener("click", e => this.handleTableClick(e));
+    this.userForm.addEventListener("submit", (e) => this.handleFormSubmit(e));
+    this.userTableBody.addEventListener("click", (e) =>
+      this.handleTableClick(e)
+    );
+    this.prevBtn.addEventListener("click", () => this.goToPrevPage());
+    this.nextBtn.addEventListener("click", () => this.goToNextPage());
+    this.pageButtonsContainer.addEventListener("click", (e) =>
+      this.handlePageNumberClick(e)
+    );
   }
 
   // --- متدهای UI ---
   async openModal(mode, userId = null) {
-    this.isEditMode = (mode === 'edit');
+    this.isEditMode = mode === "edit";
     this.editingUserId = userId;
 
     if (this.isEditMode) {
@@ -125,13 +145,12 @@ class App {
       this.submitButton.textContent = "Save Changes";
 
       const userToEdit = await this.userService.findUserById(userId);
-      
-      if (userToEdit) {
 
-        document.getElementById("fullName").value = userToEdit.name; 
+      if (userToEdit) {
+        document.getElementById("fullName").value = userToEdit.name;
         document.getElementById("email").value = userToEdit.email;
         document.getElementById("phone").value = userToEdit.phone;
-        document.getElementById("role").value = userToEdit.company.name; 
+        document.getElementById("role").value = userToEdit.role;
       }
     } else {
       this.modalTitle.textContent = "Add New User";
@@ -139,31 +158,48 @@ class App {
       this.userForm.reset();
     }
     this.userModal.classList.remove("hidden");
-}
+  }
 
   closeModal() {
     this.userModal.classList.add("hidden");
   }
 
-  updateUserCount(count) {
-    const countElement = document.querySelector("tfoot p");
-    if (countElement) {
-      countElement.textContent = `Showing ${count} of ${count} users`;
-    }
-  }
+  // updateUserCount(count) {
+  //   const countElement = document.querySelector("tfoot p");
+  //   if (countElement) {
+  //     countElement.textContent = `Showing ${count} of ${count} users`;
+  //   }
+  // }
 
-   async displayUsers () {
+  async displayUsers() {
+    this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">Loading...</td></tr>`;
+    const users = await this.userService.getUsers(
+      this.currentPage,
+      this.itemsPerPage
+    );
     this.userTableBody.innerHTML = "";
-     const users = await this.userService.getUsers();
-    this.updateUserCount(users.length);
 
-    if (users.length === 0) {
-      this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found. Click 'Add User' to start.</td></tr>`;
+    if (this.pageInfo) this.pageInfo.textContent = `Page ${this.currentPage}`;
+    if (this.prevBtn) this.prevBtn.disabled = this.currentPage === 1;
+    if (this.nextBtn) this.nextBtn.disabled = users.length < this.itemsPerPage;
+
+    if (users.length === 0 && this.currentPage > 1) {
+      this.goToPrevPage();
       return;
     }
 
-    users.forEach(user => {
-      const initials = user.fullName.split(" ").map(n => n[0]).join("");
+    if (users.length === 0) {
+      this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
+      return;
+    }
+
+    users.forEach((user) => {
+      const initials = user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
+
       const row = `
         <tr class="hover:bg-gray-50 [&_tr:last-child]:border-0">
           <td class="td">
@@ -182,7 +218,7 @@ class App {
           <td class="td text-gray-600">${user.phone}</td>
           <td class="td">
             <span class="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 gap-1 focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px] transition-[color,box-shadow] overflow-hidden border-transparent bg-[--primary] text-[--primary-foreground] [a&]:hover:bg-[--primary]/90">
-              ${user.company.name.charAt(0).toUpperCase() + user.company.name.slice(1)}
+              ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}
             </span>
           </td>
           <td class="td">
@@ -196,7 +232,7 @@ class App {
               </span>
             </div>
           </td>
-          <td class="td text-gray-600">${new Date().toLocaleDateString('fa-IR')}</td>
+          <td class="td text-gray-600">${user.createdAt}</td>
           <td class="text-foreground h-10 px-2 align-middle font-medium whitespace-nowrap text-right">
             <div class="flex items-center justify-end space-x-2">
               <button class="edit-btn inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px] aria-invalid:border-[--destructive] hover:bg-[--accent] hover:text-[--accent-foreground] dark:hover:bg-[--accent]/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5" data-id="${user.id}">
@@ -222,29 +258,75 @@ class App {
     });
   }
 
-  // --- متدهای مدیریت رویداد ---
+  // --- Pagination ---
+
+  handlePageNumberClick(event) {
+    const pageButton = event.target.closest(".page-number-btn");
+    if (pageButton) {
+      const page = parseInt(pageButton.dataset.page);
+      this.goToPage(page);
+    }
+  }
+  goToPrevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.displayUsers();
+    }
+  }
+
+  goToNextPage() {
+    if (!this.nextBtn.disabled) {
+      this.currentPage++;
+      this.displayUsers();
+    }
+  }
+  goToPage(page) {
+    this.currentPage = page;
+    this.displayUsers();
+  }
+
+  // renderPagination() {
+  //   //گرد کردن به بالا Math.ceil
+  //   const totalPages = Math.ceil(this.totalUsers / this.itemsPerPage);
+  //   this.pageButtonsContainer.innerHTML = "";
+
+  //   for (let i = 1; i <= totalPages; i++) {
+  //     const isActive = i === this.currentPage;
+  //     const button = document.createElement("button");
+  //     button.textContent = i;
+  //     button.dataset.page = i;
+  //     button.className = `pagination-button page-number-btn ${isActive ? "bg-gray-200" : ""}`;
+  //     this.pageButtonsContainer.appendChild(button);
+  //   }
+
+  //   this.prevBtn.disabled = this.currentPage === 1;
+  //   this.nextBtn.disabled = this.currentPage === totalPages;
+
+  //   const start = (this.currentPage - 1) * this.itemsPerPage + 1;
+  //   const end = start + this.itemsPerPage - 1;
+  //   this.paginationSummary.textContent = `Showing ${start}–${Math.min(end, this.totalUsers)} of ${this.totalUsers} users`;
+  // }
+
   async handleFormSubmit(event) {
     event.preventDefault();
     const formData = {
-      fullName: document.getElementById("fullName").value,
+      name: document.getElementById("fullName").value,
       email: document.getElementById("email").value,
       phone: document.getElementById("phone").value,
       role: document.getElementById("role").value,
     };
+    this.submitButton.disabled = true;
 
     if (this.isEditMode) {
-      this.userService.updateUser(this.editingUserId, formData);
+      await this.userService.updateUser(this.editingUserId, formData);
     } else {
-      const newUser = {
-        ...formData,
-        id: Date.now(),
-        status: "Active",
-        lastLogin: new Date().toLocaleString("fa-IR"),
-      };
-      this.userService.addUser(newUser);
+      await this.userService.addUser(formData);
     }
+
+    this.submitButton.disabled = false;
     this.closeModal();
-    this.displayUsers();
+
+    await this.displayUsers();
   }
 
   async handleTableClick(event) {
@@ -253,17 +335,14 @@ class App {
 
     if (editBtn) {
       const userId = parseInt(editBtn.dataset.id);
-      this.openModal('edit', userId);
+      this.openModal("edit", userId);
     }
     if (deleteBtn) {
       const userId = parseInt(deleteBtn.dataset.id);
       if (confirm("Are you sure you want to delete this user?")) {
-         await this.userService.deleteUser(userId)
+        await this.userService.deleteUser(userId);
         await this.displayUsers();
       }
     }
   }
 }
-
-
-
