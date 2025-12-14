@@ -164,13 +164,6 @@ class App {
     this.userModal.classList.add("hidden");
   }
 
-  // updateUserCount(count) {
-  //   const countElement = document.querySelector("tfoot p");
-  //   if (countElement) {
-  //     countElement.textContent = `Showing ${count} of ${count} users`;
-  //   }
-  // }
-
   async displayUsers() {
     this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">Loading...</td></tr>`;
     const users = await this.userService.getUsers(
@@ -284,28 +277,6 @@ class App {
     this.currentPage = page;
     this.displayUsers();
   }
-
-  // renderPagination() {
-  //   //گرد کردن به بالا Math.ceil
-  //   const totalPages = Math.ceil(this.totalUsers / this.itemsPerPage);
-  //   this.pageButtonsContainer.innerHTML = "";
-
-  //   for (let i = 1; i <= totalPages; i++) {
-  //     const isActive = i === this.currentPage;
-  //     const button = document.createElement("button");
-  //     button.textContent = i;
-  //     button.dataset.page = i;
-  //     button.className = `pagination-button page-number-btn ${isActive ? "bg-gray-200" : ""}`;
-  //     this.pageButtonsContainer.appendChild(button);
-  //   }
-
-  //   this.prevBtn.disabled = this.currentPage === 1;
-  //   this.nextBtn.disabled = this.currentPage === totalPages;
-
-  //   const start = (this.currentPage - 1) * this.itemsPerPage + 1;
-  //   const end = start + this.itemsPerPage - 1;
-  //   this.paginationSummary.textContent = `Showing ${start}–${Math.min(end, this.totalUsers)} of ${this.totalUsers} users`;
-  // }
 
   async handleFormSubmit(event) {
     event.preventDefault();
