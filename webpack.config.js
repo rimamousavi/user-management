@@ -15,7 +15,7 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, "dist"),
       clean: true,
 
-      publicPath: isProduction ? "auto" : "./",
+      publicPath: isProduction ? "auto" : "/",
     },
     module: {
       rules: [
@@ -49,6 +49,8 @@ module.exports = (env, argv) => {
       hot: true,
       historyApiFallback: true,
     },
+    devtool: isProduction ? 'source-map' : 'eval-cheap-module-source-map',
+  
   };
 };
 // module.exports = {
