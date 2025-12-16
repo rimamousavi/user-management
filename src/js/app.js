@@ -1,3 +1,21 @@
+function debounce(func, delay) {
+  let timeoutId;
+
+  // تابع جدیدی که برگردانده می‌شود
+  return function (...args) {
+    // هر بار که این تابع (مثلا با هر بار تایپ) اجرا می‌شود،
+    // تایمر قبلی را پاک می‌کنیم.
+    clearTimeout(timeoutId);
+
+    // یک تایمر جدید تنظیم می‌کنیم.
+    timeoutId = setTimeout(() => {
+      // فقط زمانی که تایمر تمام شد (یعنی کاربر تایپ را متوقف کرد)،
+      // تابع اصلی (func) را اجرا کن.
+      func.apply(this, args);
+    }, delay);
+  };
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const API_URL = "https://693e775f12c964ee6b6d71d4.mockapi.io/api/v1/users";
 
@@ -11,77 +29,86 @@ class UserService {
     this.apiUrl = apiUrl;
   }
 
-  async getUsers(page, limit, filters) {
-  // شروع یک بلوک try-catch برای مدیریت خطاهای احتمالی (مانند قطع بودن شبکه).
-  try {
-    // ---- مرحله ۱: دریافت کاربران برای نمایش در صفحه فعلی ----
+  async getUsers(page, limit, filters, sort) {
+    console.log(sort);
+    // شروع یک بلوک try-catch برای مدیریت خطاهای احتمالی (مانند قطع بودن شبکه).
+    try {
+      // ---- مرحله ۱: دریافت کاربران برای نمایش در صفحه فعلی ----
 
-    // یک آبجکت URL از آدرس پایه API می‌سازیم تا بتوانیم پارامترها را به راحتی به آن اضافه کنیم.
-    const url = new URL(this.apiUrl);
+      // یک آبجکت URL از آدرس پایه API می‌سازیم تا بتوانیم پارامترها را به راحتی به آن اضافه کنیم.
+      const url = new URL(this.apiUrl);
 
-    // اگر شماره صفحه‌ای (page) به تابع داده شده، آن را به عنوان پارامتر به URL اضافه کن (مثلاً: ?page=2).
-    if (page) url.searchParams.append("page", page);
+      // اگر شماره صفحه‌ای (page) به تابع داده شده، آن را به عنوان پارامتر به URL اضافه کن (مثلاً: ?page=2).
+      if (page) url.searchParams.append("page", page);
 
-    // اگر محدودیتی (limit) برای تعداد آیتم‌ها در هر صفحه داده شده، آن را هم به URL اضافه کن (مثلاً: &limit=5).
-    if (limit) url.searchParams.append("limit", limit);
+      // اگر محدودیتی (limit) برای تعداد آیتم‌ها در هر صفحه داده شده، آن را هم به URL اضافه کن (مثلاً: &limit=5).
+      if (limit) url.searchParams.append("limit", limit);
 
-    // (کد محافظ) اگر هیچ فیلتری به تابع پاس داده نشده بود (مقدارش undefined بود)، آن را به یک آبجکت خالی تبدیل کن تا در خطوط بعدی خطا ندهد.
-    filters = filters || {};
+      // (کد محافظ) اگر هیچ فیلتری به تابع پاس داده نشده بود (مقدارش undefined بود)، آن را به یک آبجکت خالی تبدیل کن تا در خطوط بعدی خطا ندهد.
+      filters = filters || {};
 
-    // اگر در آبجکت فیلترها، مقداری برای 'search' وجود داشت، آن را به پارامترهای URL اضافه کن.
-    if (filters.search) url.searchParams.append("search", filters.search);
+      // اگر در آبجکت فیلترها، مقداری برای 'search' وجود داشت، آن را به پارامترهای URL اضافه کن.
+      if (filters.search) url.searchParams.append("search", filters.search);
 
-    // اگر در آبجکت فیلترها، مقداری برای 'role' وجود داشت، آن را به پارامترهای URL اضافه کن.
-    if (filters.role) url.searchParams.append("role", filters.role);
+      // اگر در آبجکت فیلترها، مقداری برای 'role' وجود داشت، آن را به پارامترهای URL اضافه کن.
+      if (filters.role) url.searchParams.append("role", filters.role);
 
-    // اگر در آبجکت فیلترها، مقداری برای 'status' وجود داشت، آن را به پارامترهای URL اضافه کن.
-    if (filters.status) url.searchParams.append("status", filters.status);
+      // اگر در آبجکت فیلترها، مقداری برای 'status' وجود داشت، آن را به پارامترهای URL اضافه کن.
+      if (filters.status) url.searchParams.append("status", filters.status);
 
-    // درخواست اول را به API ارسال کن (با تمام پارامترها) و منتظر پاسخ بمان.
-    const response = await fetch(url.toString());
+      // این پارامترها فقط روی fetch اول تاثیر دارند، چون ترتیب در شمارش کل مهم نیست.
+      if (sort && sort.sortBy) {
+        url.searchParams.append("sortBy", sort.sortBy);
+        // پارامتر order اختیاری است، اما ما آن را هم اضافه می‌کنیم.
+        if (sort.order) {
+          url.searchParams.append("order", sort.order);
+        }
+      }
 
-    // پاسخ را از فرمت JSON به یک آرایه جاوااسکریپت تبدیل کن. این آرایه فقط شامل کاربران صفحه فعلی است.
-    const users = await response.json();
+      // درخواست اول را به API ارسال کن (با تمام پارامترها) و منتظر پاسخ بمان.
+      const response = await fetch(url.toString());
 
-    // ---- مرحله ۲: محاسبه تعداد کل کاربران منطبق با فیلترها ----
+      // پاسخ را از فرمت JSON به یک آرایه جاوااسکریپت تبدیل کن. این آرایه فقط شامل کاربران صفحه فعلی است.
+      const users = await response.json();
 
-    // یک آبجکت URL جدید برای درخواست دوم می‌سازیم. این درخواست برای شمارش تعداد کل است.
-    const countUrl = new URL(this.apiUrl);
+      // ---- مرحله ۲: محاسبه تعداد کل کاربران منطبق با فیلترها ----
 
-    // (مهم) دوباره همان فیلترها را روی این URL جدید هم اعمال می‌کنیم تا شمارش ما دقیق باشد.
-    // اگر فیلتر 'search' وجود داشت، آن را اضافه کن.
-    if (filters.search)
-      countUrl.searchParams.append("search", filters.search);
+      // یک آبجکت URL جدید برای درخواست دوم می‌سازیم. این درخواست برای شمارش تعداد کل است.
+      const countUrl = new URL(this.apiUrl);
 
-    // اگر فیلتر 'role' وجود داشت،آن را به پارامترهای URL اضافه کن.
-    if (filters.role) countUrl.searchParams.append("role", filters.role);
+      // (مهم) دوباره همان فیلترها را روی این URL جدید هم اعمال می‌کنیم تا شمارش ما دقیق باشد.
+      // اگر فیلتر 'search' وجود داشت، آن را اضافه کن.
+      if (filters.search)
+        countUrl.searchParams.append("search", filters.search);
 
-    // اگر فیلتر 'status' وجود داشت، آن را به پارامترهای URL اضافه کن.
-    if (filters.status)
-      countUrl.searchParams.append("status", filters.status);
+      // اگر فیلتر 'role' وجود داشت،آن را به پارامترهای URL اضافه کن.
+      if (filters.role) countUrl.searchParams.append("role", filters.role);
 
-    // درخواست دوم را ارسال کن (این بار بدون page و limit) تا *تمام* کاربران منطبق با فیلترها را بگیریم.
-    const allUsersResponse = await fetch(countUrl.toString());
+      // اگر فیلتر 'status' وجود داشت، آن را به پارامترهای URL اضافه کن.
+      if (filters.status)
+        countUrl.searchParams.append("status", filters.status);
 
-    // پاسخ دوم را به آرایه جاوااسکریپت تبدیل کن. این آرایه شامل همه کاربران فیلتر شده است.
-    const allUsers = await allUsersResponse.json();
+      // درخواست دوم را ارسال کن (این بار بدون page و limit) تا *تمام* کاربران منطبق با فیلترها را بگیریم.
+      const allUsersResponse = await fetch(countUrl.toString());
 
-    // (محاسبه نهایی) چک کن آیا 'allUsers' یک آرایه است؟ اگر بله، طول (تعداد اعضای) آن را در totalCount بریز. اگر نه، مقدار 0 را قرار بده.
-    const totalCount = Array.isArray(allUsers) ? allUsers.length : 0;
+      // پاسخ دوم را به آرایه جاوااسکریپت تبدیل کن. این آرایه شامل همه کاربران فیلتر شده است.
+      const allUsers = await allUsersResponse.json();
 
-    // یک آبجکت شامل هر دو نتیجه (لیست کاربران صفحه فعلی و تعداد کل) را برگردان.
-    return { users, totalCount };
+      // (محاسبه نهایی) چک کن آیا 'allUsers' یک آرایه است؟ اگر بله، طول (تعداد اعضای) آن را در totalCount بریز. اگر نه، مقدار 0 را قرار بده.
+      const totalCount = Array.isArray(allUsers) ? allUsers.length : 0;
 
-  // اگر در هر یک از مراحل بالا خطایی رخ داد...
-  } catch (error) {
-    // خطا را در کنسول نمایش بده تا برنامه‌نویس آن را ببیند.
-    console.error("Error fetching users:", error);
+      // یک آبجکت شامل هر دو نتیجه (لیست کاربران صفحه فعلی و تعداد کل) را برگردان.
+      return { users, totalCount };
 
-    // یک نتیجه خالی برگردان تا برنامه کرش نکند و UI بتواند وضعیت "بدون کاربر" را نمایش دهد.
-    return { users: [], totalCount: 0 };
+      // اگر در هر یک از مراحل بالا خطایی رخ داد...
+    } catch (error) {
+      // خطا را در کنسول نمایش بده تا برنامه‌نویس آن را ببیند.
+      console.error("Error fetching users:", error);
+
+      // یک نتیجه خالی برگردان تا برنامه کرش نکند و UI بتواند وضعیت "بدون کاربر" را نمایش دهد.
+      return { users: [], totalCount: 0 };
+    }
   }
-}
-
 
   async findUserById(userId) {
     try {
@@ -141,6 +168,7 @@ class App {
     this.isEditMode = false;
     this.editingUserId = null;
     this.currentFilters = { search: "", role: "", status: "" };
+    this.currentSort = { sortBy: "createdAt", order: "asc" };
 
     this._initDOMElements();
     this._initEventListeners();
@@ -148,6 +176,8 @@ class App {
   }
 
   _initDOMElements() {
+    this.sort = document.getElementById("sort");
+    this.searchInput = document.getElementById("search");
     this.rolesFilter = document.getElementById("roles-filter");
     this.statusFilter = document.getElementById("status-filter");
     this.addUserBtn = document.getElementById("openFormBtn");
@@ -167,6 +197,11 @@ class App {
   }
 
   _initEventListeners() {
+    this.sort.addEventListener("change", (e) => this._handleSort(e));
+    this.searchInput.addEventListener(
+      "input",
+      debounce((e) => this._handleSearch(e), 800)
+    );
     this.rolesFilter.addEventListener("change", (e) => this.RolesFilter(e));
     this.statusFilter.addEventListener("change", (e) => this.StatusFilter(e));
     this.addUserBtn.addEventListener("click", () => this.openModal("add"));
@@ -186,7 +221,21 @@ class App {
     );
   }
 
-  // --- متدهای UI ---
+  _handleSort(e) {
+    const value = e.target.value;
+    console.log(value.split("_"));
+
+    const [sortBy, order] = value.split("_");
+    this.currentSort = { sortBy, order };
+    this.currentPage = 1;
+    this.displayUsers();
+  }
+  _handleSearch(e) {
+    const searchTerm = e.target.value.trim();
+    this.currentFilters.search = searchTerm;
+    this.currentPage = 1;
+    this.displayUsers();
+  }
   RolesFilter(e) {
     // پیاده‌سازی فیلتر بر اساس نقش کاربر
     this.currentFilters.role = e.target.value || "";
@@ -232,7 +281,8 @@ class App {
     const { users, totalCount } = await this.userService.getUsers(
       this.currentPage,
       this.itemsPerPage,
-      this.currentFilters
+      this.currentFilters,
+      this.currentSort
     );
     this.totalUsers = totalCount;
 
@@ -249,17 +299,22 @@ class App {
     this.renderPagination();
   }
 
-  updateTable(list) {
-    console.log("Updating table with users:", list);
-    this.userTableBody.innerHTML = "";
-    list.forEach((user) => {
+  updateTable(users) {
+    console.log("Updating table with users:", users);
+    if (!users || users.length === 0) {
+      this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
+      return;
+    }
+
+    const rowsHtml = users.map((user) => {
+      const isActive = user.status === true;
       const initials = user.name
         .split(" ")
         .map((n) => n[0])
         .join("")
         .toUpperCase();
 
-      const row = `
+      return `
         <tr class="hover:bg-gray-50 [&_tr:last-child]:border-0">
           <td class="td">
             <label class="check-container">
@@ -283,11 +338,11 @@ class App {
           <td class="td">
             <div class="flex items-center space-x-2">
               <label class="switch">
-                <input type="checkbox" checked />
+                <input data-id="${user.id}" data-name="${user.name}"  class="switch-btn" type="checkbox" ${isActive ? "checked" : " "} />
                 <span class="slider round"></span>
               </label>
               <span class="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 gap-1 focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px] dark:aria-invalid:ring-[--destructive]/40 transition-[color,box-shadow] overflow-hidden border-transparent bg-[--primary] text-[--primary-foreground] [a&]:hover:bg-[--primary]/90">
-                ${user.status}
+                ${isActive ? "Active" : "inactive"}
               </span>
             </div>
           </td>
@@ -313,8 +368,8 @@ class App {
           </td>
         </tr>
       `;
-      this.userTableBody.innerHTML += row;
     });
+    this.userTableBody.innerHTML = rowsHtml.join("");
   }
 
   // --- Pagination ---
@@ -366,15 +421,6 @@ class App {
     this.paginationSummary.textContent = `Showing ${this.totalUsers > 0 ? start : 0} – ${end} of ${this.totalUsers} users`;
   }
 
-  // handlePageNumberClick(event) {
-  //   if (event.target.classList.contains("page-number-btn")) {
-  //     const page = parseInt(event.target.dataset.page);
-  //     if (page !== this.currentPage) {
-  //       this.goToPage(page);
-  //     }
-  //   }
-  // }
-
   async handleFormSubmit(event) {
     event.preventDefault();
     const formData = {
@@ -404,19 +450,39 @@ class App {
   async handleTableClick(event) {
     const editBtn = event.target.closest(".edit-btn");
     const deleteBtn = event.target.closest(".delete-btn");
+    const switchInput = event.target.closest(".switch-btn");
 
     if (editBtn) {
       const userId = editBtn.dataset.id;
       this.openModal("edit", userId);
+      return;
     }
 
     if (deleteBtn) {
       const userId = deleteBtn.dataset.id;
       if (confirm("Are you sure you want to delete this user?")) {
         await this.userService.deleteUser(userId);
-        // پس از حذف، صفحه فعلی را مجددا بارگذاری کن
         await this.displayUsers();
       }
+      return;
+    }
+
+    if (switchInput) {
+      const userId = switchInput.dataset.id;
+      const newStatus = switchInput.checked;
+      const userName = switchInput.dataset.name;
+      if (
+        confirm(
+          `Are you sure you want to ${newStatus ? "Active" : "Inactive"} ${userName} ?`
+        )
+      ) {
+        await this.userService.updateUser(userId, { status: newStatus });
+
+        await this.displayUsers();
+      } else {
+        switchInput.checked = !newStatus;
+      }
+      return;
     }
   }
 }
