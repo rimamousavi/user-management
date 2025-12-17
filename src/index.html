@@ -136,6 +136,21 @@
                         <option value="user">User</option>
                       </select>
                     </div>
+                    <div>
+                      <label for="option" class="block font-medium text-sm mb-1"
+                        >Status</label
+                      >
+                      <select
+                        name="status"
+                        required
+                        id="status-in-modal"
+                        class="font-medium text-sm custom-select w-full border rounded-md px-3 py-2 outline-none focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px]"
+                      >
+                        <option>Select a status</option>
+                        <option value="admin">Active</option>
+                        <option value="user">Inactive</option>
+                      </select>
+                    </div>
                     <div class="flex justify-between gap-4 mt-6">
                       <button
                         id="submit"
@@ -156,6 +171,7 @@
                 </div>
               </div>
               <button
+                id="extract-btn"
                 class="flex w-44 sm:w-auto font-medium transition-all items-center justify-center gap-2 whitespace-nowrap shrink-0 h-9 px-4 py-2 has-[>svg]:px-3 rounded-md bg-black text-white hover:bg-black/90 disabled:pointer-events-none disabled:opacity-50 outline-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 sm:flex"
               >
                 Export Users
@@ -201,8 +217,8 @@
               <div id="status-filter">
                 <select name="status" id="status" class="custom-select">
                   <option value="">All Status</option>
-                  <option value="pilot">Active</option>
-                  <option value="admin">Inactive</option>
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
                 </select>
               </div>
             </div>
@@ -229,7 +245,7 @@
             <select
               name="sort"
               id="sort"
-              class="custom-select border-none focus:ring-0"
+              class="custom-select border-none focus:ring-0 w-auto"
             >
               <option value="createdAt_asc">Sort by: Newest</option>
               <option value="createdAt_desc">Sort by: Oldest</option>
@@ -246,7 +262,7 @@
               <tr>
                 <th class="th">
                   <label class="check-container">
-                    <input type="checkbox" />
+                    <input id="select-all-checkbox" type="checkbox" />
                     <span class="checkbox"></span>
                   </label>
                 </th>
@@ -424,6 +440,20 @@
                       ></p>
                     </div>
                     <div class="flex items-center space-x-2">
+                      <div id="per-page">
+                        <select
+                          name="per"
+                          id="per"
+                          class="custom-select w-auto"
+                        >
+                          <option value="5">5 Items per page</option>
+                          <option value="10">10 Items per page</option>
+                          <option value="15">15 Items per page</option>
+                          <option value="50">50 Items per page</option>
+                          <option value="100">100 Items per page</option>
+                          <option value="all">All items</option>
+                        </select>
+                      </div>
                       <button id="prev-btn" class="pagination-button" disabled>
                         Previous
                       </button>

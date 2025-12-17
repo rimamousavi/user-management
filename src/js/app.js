@@ -37,12 +37,13 @@ class UserService {
 
       // یک آبجکت URL از آدرس پایه API می‌سازیم تا بتوانیم پارامترها را به راحتی به آن اضافه کنیم.
       const url = new URL(this.apiUrl);
+      if (limit !== "all") {
+        // اگر شماره صفحه‌ای (page) به تابع داده شده، آن را به عنوان پارامتر به URL اضافه کن (مثلاً: ?page=2).
+        if (page) url.searchParams.append("page", page);
 
-      // اگر شماره صفحه‌ای (page) به تابع داده شده، آن را به عنوان پارامتر به URL اضافه کن (مثلاً: ?page=2).
-      if (page) url.searchParams.append("page", page);
-
-      // اگر محدودیتی (limit) برای تعداد آیتم‌ها در هر صفحه داده شده، آن را هم به URL اضافه کن (مثلاً: &limit=5).
-      if (limit) url.searchParams.append("limit", limit);
+        // اگر محدودیتی (limit) برای تعداد آیتم‌ها در هر صفحه داده شده، آن را هم به URL اضافه کن (مثلاً: &limit=5).
+        if (limit) url.searchParams.append("limit", limit);
+      }
 
       // (کد محافظ) اگر هیچ فیلتری به تابع پاس داده نشده بود (مقدارش undefined بود)، آن را به یک آبجکت خالی تبدیل کن تا در خطوط بعدی خطا ندهد.
       filters = filters || {};
@@ -162,6 +163,8 @@ class UserService {
 class App {
   constructor(userService) {
     this.userService = userService;
+    this.selectedUserIds = new Set();
+    this.displayedUsers = [];
     this.currentPage = 1;
     this.itemsPerPage = 5;
     this.totalUsers = 0;
@@ -174,8 +177,10 @@ class App {
     this._initEventListeners();
     this.displayUsers();
   }
-
   _initDOMElements() {
+    this.selectAllCheckbox = document.getElementById("select-all-checkbox");
+    this.extractBtn = document.getElementById("extract-btn");
+    this.perPage = document.getElementById("per-page");
     this.sort = document.getElementById("sort");
     this.searchInput = document.getElementById("search");
     this.rolesFilter = document.getElementById("roles-filter");
@@ -195,8 +200,14 @@ class App {
     );
     this.paginationSummary = document.getElementById("pagination-summary");
   }
-
   _initEventListeners() {
+    this.selectAllCheckbox.addEventListener("change", (event) =>
+      this._handleSelectAll(event)
+    );
+    this.extractBtn.addEventListener("click", () =>
+      this._extractSelectedUsers()
+    );
+    this.perPage.addEventListener("change", (e) => this._ItemsPerPage(e));
     this.sort.addEventListener("change", (e) => this._handleSort(e));
     this.searchInput.addEventListener(
       "input",
@@ -219,6 +230,11 @@ class App {
     this.pageButtonsContainer.addEventListener("click", (e) =>
       this.handlePageNumberClick(e)
     );
+    this.userTableBody.addEventListener("change", (e) => {
+      if (e.target.classList.contains("row-checkbox")) {
+        this._handleRowSelection(e.target);
+      }
+    });
   }
 
   _handleSort(e) {
@@ -244,12 +260,23 @@ class App {
     this.displayUsers();
   }
   StatusFilter(e) {
-    // پیاده‌سازی فیلتر بر اساس وضعیت کاربر
-    this.currentFilters.status = e.target.value || "";
+    const value = e.target.value || "";
+    this.currentFilters.status = value;
+    console.log("Filter set to:", this.currentFilters.status);
     this.currentPage = 1;
     this.displayUsers();
   }
-
+  _ItemsPerPage(e) {
+    try {
+      const value = e.target.value;
+      console.log(value);
+      this.itemsPerPage = value;
+      this.currentPage = 1;
+      this.displayUsers();
+    } catch (error) {
+      console.log(error);
+    }
+  }
   async openModal(mode, userId = null) {
     this.isEditMode = mode === "edit";
     this.editingUserId = userId;
@@ -264,6 +291,7 @@ class App {
         document.getElementById("email").value = userToEdit.email;
         document.getElementById("phone").value = userToEdit.phone;
         document.getElementById("role").value = userToEdit.role;
+        document.getElementById("status-in-modal").value = userToEdit.status;
       }
     } else {
       this.modalTitle.textContent = "Add New User";
@@ -271,11 +299,9 @@ class App {
     }
     this.userModal.classList.remove("hidden");
   }
-
   closeModal() {
     this.userModal.classList.add("hidden");
   }
-
   async displayUsers() {
     this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">Loading...</td></tr>`;
     const { users, totalCount } = await this.userService.getUsers(
@@ -284,6 +310,7 @@ class App {
       this.currentFilters,
       this.currentSort
     );
+    this.displayedUsers = users;
     this.totalUsers = totalCount;
 
     if (users.length === 0 && this.currentPage > 1) {
@@ -298,27 +325,31 @@ class App {
     this.updateTable(users);
     this.renderPagination();
   }
-
   updateTable(users) {
-    console.log("Updating table with users:", users);
-    if (!users || users.length === 0) {
-      this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
-      return;
-    }
+    try {
+      if (!users && users.length === 0) {
+        this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
+        return;
+      }
 
-    const rowsHtml = users.map((user) => {
-      const isActive = user.status === true;
-      const initials = user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase();
+      const rowsHtml = users?.map((user) => {
+        const isActive = user.status === true;
+        const initials = user.name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase();
 
-      return `
+        return `
         <tr class="hover:bg-gray-50 [&_tr:last-child]:border-0">
           <td class="td">
             <label class="check-container">
-              <input type="checkbox" />
+              <input 
+              data-user-id="${user.id}" 
+              class="row-checkbox" 
+              type="checkbox" 
+              ${this.selectedUserIds.has(user.id) ? "checked" : ""}
+            />
               <span class="checkbox"></span>
             </label>
           </td>
@@ -368,10 +399,13 @@ class App {
           </td>
         </tr>
       `;
-    });
-    this.userTableBody.innerHTML = rowsHtml.join("");
+      });
+      this.userTableBody.innerHTML = rowsHtml.join("");
+    } catch (error) {
+      this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
+    }
+    this._syncSelectAllCheckboxState();
   }
-
   // --- Pagination ---
 
   handlePageNumberClick(event) {
@@ -386,7 +420,6 @@ class App {
       this.goToPage(this.currentPage - 1);
     }
   }
-
   goToNextPage() {
     const totalPages = Math.ceil(this.totalUsers / this.itemsPerPage);
     if (this.currentPage < totalPages) {
@@ -397,7 +430,6 @@ class App {
     this.currentPage = page;
     this.displayUsers();
   }
-
   renderPagination() {
     const totalPages = Math.ceil(this.totalUsers / this.itemsPerPage);
     this.pageButtonsContainer.innerHTML = "";
@@ -416,13 +448,19 @@ class App {
     this.nextBtn.disabled = this.currentPage === totalPages || totalPages === 0;
 
     // به‌روزرسانی خلاصه pagination
-    const start = (this.currentPage - 1) * this.itemsPerPage + 1;
-    const end = Math.min(start + this.itemsPerPage - 1, this.totalUsers);
+    const start = (this.currentPage - 1) * this.itemsPerPage + 1 || 1;
+    const end =
+      Math.min(start + this.itemsPerPage - 1, this.totalUsers) ||
+      this.totalUsers;
     this.paginationSummary.textContent = `Showing ${this.totalUsers > 0 ? start : 0} – ${end} of ${this.totalUsers} users`;
   }
 
   async handleFormSubmit(event) {
     event.preventDefault();
+
+    const statusValue = document.getElementById("status-in-modal").value;
+    console.log(statusValue);
+
     const formData = {
       name: document.getElementById("fullName").value,
       email: document.getElementById("email").value,
@@ -431,6 +469,7 @@ class App {
         document.getElementById("role").value === "Select a role"
           ? "user"
           : document.getElementById("role").value,
+      status: statusValue === "true",
     };
     this.submitButton.disabled = true;
 
@@ -438,7 +477,6 @@ class App {
       await this.userService.updateUser(this.editingUserId, formData);
     } else {
       await this.userService.addUser(formData);
-      // برای رفتن به صفحه‌ای که کاربر جدید در آن قرار دارد (معمولا صفحه آخر)
       this.currentPage = Math.ceil((this.totalUsers + 1) / this.itemsPerPage);
     }
 
@@ -446,7 +484,6 @@ class App {
     this.closeModal();
     await this.displayUsers();
   }
-
   async handleTableClick(event) {
     const editBtn = event.target.closest(".edit-btn");
     const deleteBtn = event.target.closest(".delete-btn");
@@ -484,5 +521,84 @@ class App {
       }
       return;
     }
+  }
+  _handleRowSelection(checkbox) {
+    const userId = checkbox.dataset.userId;
+    const isChecked = checkbox.checked;
+
+    if (isChecked) {
+      this.selectedUserIds.add(userId);
+    } else {
+      this.selectedUserIds.delete(userId);
+    }
+    console.log("Selected IDs:", this.selectedUserIds);
+    this._syncSelectAllCheckboxState();
+  }
+  _extractSelectedUsers() {
+    // تمام چک‌باکس‌هایی که تیک خورده‌اند را پیدا کن
+    const checkedBoxes = document.querySelectorAll(".row-checkbox:checked");
+
+    if (checkedBoxes.length === 0) {
+      alert("Please select at least one user to extract.");
+      return;
+    }
+
+    // ID تمام کاربران انتخاب شده را استخراج کن
+    const selectedUserIds = Array.from(checkedBoxes).map(
+      (checkbox) => checkbox.dataset.userId
+    );
+
+    // حالا آبجکت کامل کاربران انتخاب شده را از لیستی که قبلا ذخیره کردیم، پیدا کن
+    const usersToExport = this.displayedUsers.filter((user) =>
+      selectedUserIds.includes(user.id)
+    );
+
+    // (اختیاری) می‌توانید انتخاب کنید کدام ستون‌ها را می‌خواهید استخراج کنید
+    const dataForSheet = usersToExport.map((user) => ({
+      Name: user.name,
+      Email: user.email,
+      Phone: user.phone,
+      Role: user.role,
+      Status: user.status ? "Active" : "Inactive",
+      "Created At": new Date(user.createdAt).toLocaleString(),
+    }));
+
+    // --- استفاده از کتابخانه SheetJS ---
+
+    // ۱. ساخت یک Worksheet از روی داده‌های JSON
+    const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+
+    // ۲. ساخت یک Workbook جدید
+    const workbook = XLSX.utils.book_new();
+
+    // ۳. اضافه کردن Worksheet به Workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Users"); // "Users" نام شیت در فایل اکسل خواهد بود
+
+    // ۴. تولید و دانلود فایل Excel
+    // نام فایل را می‌توان به صورت داینامیک تولید کرد
+    XLSX.writeFile(workbook, `Users-Export-${Date.now()}.xlsx`);
+  }
+  _handleSelectAll(event) {
+    const isChecked = event.target.checked;
+
+    // تمام چک‌باکس‌های ردیف‌ها که در حال حاضر در صفحه هستند را پیدا کن.
+    const allRowCheckboxes =
+      this.userTableBody.querySelectorAll(".row-checkbox");
+
+    allRowCheckboxes.forEach((checkbox) => {
+      // وضعیت هر چک‌باکس ردیف را با وضعیت چک‌باکس هدر یکسان کن.
+      checkbox.checked = isChecked;
+
+      const userId = checkbox.dataset.userId;
+
+      // "حافظه" اصلی برنامه را هم آپدیت کن.
+      if (isChecked) {
+        this.selectedUserIds.add(userId);
+      } else {
+        this.selectedUserIds.delete(userId);
+      }
+    });
+
+    console.log("Selected IDs after Select All:", this.selectedUserIds);
   }
 }

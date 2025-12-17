@@ -815,6 +815,9 @@ input:checked + .slider:before {
 .w-8 {
   width: 2rem;
 }
+.w-auto {
+  width: auto;
+}
 .w-fit {
   width: -moz-fit-content;
   width: fit-content;
@@ -1363,3 +1366,5 @@ input:checked + .slider:before {
   border-width: 0px;
 }
 
+
+/*# sourceMappingURL=styles.css.map*/
