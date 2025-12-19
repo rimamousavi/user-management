@@ -1,3 +1,5 @@
+// import * as XLSX from "sheetjs";
+
 function debounce(func, delay) {
   let timeoutId;
 
@@ -42,6 +44,7 @@ class UserService {
         if (page) url.searchParams.append("page", page);
 
         // اگر محدودیتی (limit) برای تعداد آیتم‌ها در هر صفحه داده شده، آن را هم به URL اضافه کن (مثلاً: &limit=5).
+        // if (limit) url.searchParams.append("limit", limit);
         if (limit) url.searchParams.append("limit", limit);
       }
 
@@ -209,12 +212,18 @@ class App {
     );
     this.perPage.addEventListener("change", (e) => this._ItemsPerPage(e));
     this.sort.addEventListener("change", (e) => this._handleSort(e));
+    // this.searchInput.addEventListener(
+    //   "input",
+    //   debounce((e) => this._handleSearch(e), 800)
+    // );
     this.searchInput.addEventListener(
       "input",
-      debounce((e) => this._handleSearch(e), 800)
+      debounce((e) => this._handleFilterChange(e), 800)
     );
-    this.rolesFilter.addEventListener("change", (e) => this.RolesFilter(e));
-    this.statusFilter.addEventListener("change", (e) => this.StatusFilter(e));
+    this.rolesFilter.addEventListener("change", (e) => this._handleFilterChange(e));
+    this.statusFilter.addEventListener("change", (e) => this._handleFilterChange(e));
+    // this.rolesFilter.addEventListener("change", (e) => this.RolesFilter(e));
+    // this.statusFilter.addEventListener("change", (e) => this.StatusFilter(e));
     this.addUserBtn.addEventListener("click", () => this.openModal("add"));
     this.closeFormBtn.addEventListener("click", () => this.closeModal());
     this.cancelBtn.addEventListener("click", () => this.closeModal());
@@ -246,26 +255,29 @@ class App {
     this.currentPage = 1;
     this.displayUsers();
   }
-  _handleSearch(e) {
-    const searchTerm = e.target.value.trim();
-    this.currentFilters.search = searchTerm;
-    this.currentPage = 1;
+  _handleFilterChange(e){
+    const selectElement=e.target;
+    const filterKey=selectElement.name;
+    const filterValue = selectElement.value.trim();
+    this.currentFilters[filterKey]=filterValue;
+    this.currentPage=1;
     this.displayUsers();
-  }
-  RolesFilter(e) {
-    // پیاده‌سازی فیلتر بر اساس نقش کاربر
-    this.currentFilters.role = e.target.value || "";
 
-    this.currentPage = 1;
-    this.displayUsers();
   }
-  StatusFilter(e) {
-    const value = e.target.value || "";
-    this.currentFilters.status = value;
-    console.log("Filter set to:", this.currentFilters.status);
-    this.currentPage = 1;
-    this.displayUsers();
-  }
+  // RolesFilter(e) {
+  //   // پیاده‌سازی فیلتر بر اساس نقش کاربر
+  //   this.currentFilters.role = e.target.value || "";
+
+  //   this.currentPage = 1;
+  //   this.displayUsers();
+  // }
+  // StatusFilter(e) {
+  //   const value = e.target.value || "";
+  //   this.currentFilters.status = value;
+  //   console.log("Filter set to:", this.currentFilters.status);
+  //   this.currentPage = 1;
+  //   this.displayUsers();
+  // }
   _ItemsPerPage(e) {
     try {
       const value = e.target.value;
@@ -404,7 +416,7 @@ class App {
     } catch (error) {
       this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
     }
-    this._syncSelectAllCheckboxState();
+    // this._syncSelectAllCheckboxState();
   }
   // --- Pagination ---
 
@@ -448,11 +460,15 @@ class App {
     this.nextBtn.disabled = this.currentPage === totalPages || totalPages === 0;
 
     // به‌روزرسانی خلاصه pagination
-    const start = (this.currentPage - 1) * this.itemsPerPage + 1 || 1;
+  if (this.totalUsers===0) {
+    this.paginationSummary.textContent = `Showing 0 – 0 of 0 users`;
+  } else {
+        const start = (this.currentPage - 1) * this.itemsPerPage + 1 || 1;
     const end =
       Math.min(start + this.itemsPerPage - 1, this.totalUsers) ||
       this.totalUsers;
     this.paginationSummary.textContent = `Showing ${this.totalUsers > 0 ? start : 0} – ${end} of ${this.totalUsers} users`;
+  }
   }
 
   async handleFormSubmit(event) {
@@ -531,53 +547,89 @@ class App {
     } else {
       this.selectedUserIds.delete(userId);
     }
-    console.log("Selected IDs:", this.selectedUserIds);
-    this._syncSelectAllCheckboxState();
+    // console.log("Selected IDs:", this.selectedUserIds);
+    // this._syncSelectAllCheckboxState();
   }
+  // _extractSelectedUsers() {
+  //   // تمام چک‌باکس‌هایی که تیک خورده‌اند را پیدا کن
+  //   const checkedBoxes = document.querySelectorAll(".row-checkbox:checked");
+
+  //   if (checkedBoxes.length === 0) {
+  //     alert("Please select at least one user to extract.");
+  //     return;
+  //   }
+
+  //   // ID تمام کاربران انتخاب شده را استخراج کن
+  //   const selectedUserIds = Array.from(checkedBoxes).map(
+  //     (checkbox) => checkbox.dataset.userId
+  //   );
+
+  //   // حالا آبجکت کامل کاربران انتخاب شده را از لیستی که قبلا ذخیره کردیم، پیدا کن
+  //   const usersToExport = this.displayedUsers.filter((user) =>
+  //     selectedUserIds.includes(user.id)
+  //   );
+
+  //   // (اختیاری) می‌توانید انتخاب کنید کدام ستون‌ها را می‌خواهید استخراج کنید
+  //   const dataForSheet = usersToExport.map((user) => ({
+  //     Name: user.name,
+  //     Email: user.email,
+  //     Phone: user.phone,
+  //     Role: user.role,
+  //     Status: user.status ? "Active" : "Inactive",
+  //     "Created At": new Date(user.createdAt).toLocaleString(),
+  //   }));
+
+  //   // --- استفاده از کتابخانه SheetJS ---
+
+  //   // ۱. ساخت یک Worksheet از روی داده‌های JSON
+  //   const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+
+  //   // ۲. ساخت یک Workbook جدید
+  //   const workbook = XLSX.utils.book_new();
+
+  //   // ۳. اضافه کردن Worksheet به Workbook
+  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Users"); // "Users" نام شیت در فایل اکسل خواهد بود
+
+  //   // ۴. تولید و دانلود فایل Excel
+  //   // نام فایل را می‌توان به صورت داینامیک تولید کرد
+  //   XLSX.writeFile(workbook, `Users-Export-${Date.now()}.xlsx`);
+  // }
   _extractSelectedUsers() {
-    // تمام چک‌باکس‌هایی که تیک خورده‌اند را پیدا کن
-    const checkedBoxes = document.querySelectorAll(".row-checkbox:checked");
+  const checkedBoxes = document.querySelectorAll(".row-checkbox:checked");
 
-    if (checkedBoxes.length === 0) {
-      alert("Please select at least one user to extract.");
-      return;
-    }
-
-    // ID تمام کاربران انتخاب شده را استخراج کن
-    const selectedUserIds = Array.from(checkedBoxes).map(
-      (checkbox) => checkbox.dataset.userId
-    );
-
-    // حالا آبجکت کامل کاربران انتخاب شده را از لیستی که قبلا ذخیره کردیم، پیدا کن
-    const usersToExport = this.displayedUsers.filter((user) =>
-      selectedUserIds.includes(user.id)
-    );
-
-    // (اختیاری) می‌توانید انتخاب کنید کدام ستون‌ها را می‌خواهید استخراج کنید
-    const dataForSheet = usersToExport.map((user) => ({
-      Name: user.name,
-      Email: user.email,
-      Phone: user.phone,
-      Role: user.role,
-      Status: user.status ? "Active" : "Inactive",
-      "Created At": new Date(user.createdAt).toLocaleString(),
-    }));
-
-    // --- استفاده از کتابخانه SheetJS ---
-
-    // ۱. ساخت یک Worksheet از روی داده‌های JSON
-    const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
-
-    // ۲. ساخت یک Workbook جدید
-    const workbook = XLSX.utils.book_new();
-
-    // ۳. اضافه کردن Worksheet به Workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Users"); // "Users" نام شیت در فایل اکسل خواهد بود
-
-    // ۴. تولید و دانلود فایل Excel
-    // نام فایل را می‌توان به صورت داینامیک تولید کرد
-    XLSX.writeFile(workbook, `Users-Export-${Date.now()}.xlsx`);
+  if (checkedBoxes.length === 0) {
+    alert("Please select at least one user to extract.");
+    return;
   }
+
+  const selectedUserIds = Array.from(checkedBoxes).map(
+    (checkbox) => checkbox.dataset.userId
+  );
+
+  const usersToExport = this.displayedUsers.filter((user) =>
+    selectedUserIds.includes(user.id)
+  );
+
+  const dataToExport = usersToExport.map((user) => ({
+    Name: user.name,
+    Email: user.email,
+    Phone: user.phone,
+    Role: user.role,
+    Status: user.status ? "Active" : "Inactive",
+    CreatedAt: new Date(user.createdAt).toISOString(),
+  }));
+
+  const jsonStr = JSON.stringify(dataToExport, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `users-export-${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
   _handleSelectAll(event) {
     const isChecked = event.target.checked;
 
