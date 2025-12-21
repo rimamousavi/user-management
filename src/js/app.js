@@ -212,18 +212,16 @@ class App {
     );
     this.perPage.addEventListener("change", (e) => this._ItemsPerPage(e));
     this.sort.addEventListener("change", (e) => this._handleSort(e));
-    // this.searchInput.addEventListener(
-    //   "input",
-    //   debounce((e) => this._handleSearch(e), 800)
-    // );
     this.searchInput.addEventListener(
       "input",
       debounce((e) => this._handleFilterChange(e), 800)
     );
-    this.rolesFilter.addEventListener("change", (e) => this._handleFilterChange(e));
-    this.statusFilter.addEventListener("change", (e) => this._handleFilterChange(e));
-    // this.rolesFilter.addEventListener("change", (e) => this.RolesFilter(e));
-    // this.statusFilter.addEventListener("change", (e) => this.StatusFilter(e));
+    this.rolesFilter.addEventListener("change", (e) =>
+      this._handleFilterChange(e)
+    );
+    this.statusFilter.addEventListener("change", (e) =>
+      this._handleFilterChange(e)
+    );
     this.addUserBtn.addEventListener("click", () => this.openModal("add"));
     this.closeFormBtn.addEventListener("click", () => this.closeModal());
     this.cancelBtn.addEventListener("click", () => this.closeModal());
@@ -255,29 +253,14 @@ class App {
     this.currentPage = 1;
     this.displayUsers();
   }
-  _handleFilterChange(e){
-    const selectElement=e.target;
-    const filterKey=selectElement.name;
+  _handleFilterChange(e) {
+    const selectElement = e.target;
+    const filterKey = selectElement.name;
     const filterValue = selectElement.value.trim();
-    this.currentFilters[filterKey]=filterValue;
-    this.currentPage=1;
+    this.currentFilters[filterKey] = filterValue;
+    this.currentPage = 1;
     this.displayUsers();
-
   }
-  // RolesFilter(e) {
-  //   // پیاده‌سازی فیلتر بر اساس نقش کاربر
-  //   this.currentFilters.role = e.target.value || "";
-
-  //   this.currentPage = 1;
-  //   this.displayUsers();
-  // }
-  // StatusFilter(e) {
-  //   const value = e.target.value || "";
-  //   this.currentFilters.status = value;
-  //   console.log("Filter set to:", this.currentFilters.status);
-  //   this.currentPage = 1;
-  //   this.displayUsers();
-  // }
   _ItemsPerPage(e) {
     try {
       const value = e.target.value;
@@ -339,7 +322,7 @@ class App {
   }
   updateTable(users) {
     try {
-      if (!users && users.length === 0) {
+      if (!users || users.length === 0) {
         this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
         return;
       }
@@ -351,34 +334,33 @@ class App {
           .map((n) => n[0])
           .join("")
           .toUpperCase();
-
         return `
         <tr class="hover:bg-gray-50 [&_tr:last-child]:border-0">
-          <td class="td">
+          <td data-label="Select" class="td">
             <label class="check-container">
               <input 
-              data-user-id="${user.id}" 
-              class="row-checkbox" 
-              type="checkbox" 
-              ${this.selectedUserIds.has(user.id) ? "checked" : ""}
-            />
+                data-user-id="${user.id}" 
+                class="row-checkbox" 
+                type="checkbox" 
+                ${this.selectedUserIds.has(user.id) ? "checked" : ""}
+              />
               <span class="checkbox"></span>
             </label>
           </td>
-          <td class="text-left p-4 text-sm font-light td">
+          <td data-label="Profile" class="text-left p-4 text-sm font-light td">
             <span class="relative flex size-10 shrink-0 overflow-hidden rounded-full w-8 h-8">
               <span class="bg-[--muted] flex size-full items-center justify-center rounded-full">${initials}</span>
             </span>
           </td>
-          <td class="td font-medium">${user.name}</td>
-          <td class="td text-gray-600">${user.email}</td>
-          <td class="td text-gray-600">${user.phone}</td>
-          <td class="td">
+          <td data-label="Full Name" class="td font-medium">${user.name}</td>
+          <td data-label="Email Address" class="td text-gray-600">${user.email}</td>
+          <td data-label="Phone Number" class="td text-gray-600">${user.phone}</td>
+          <td data-label="Role" class="td">
             <span class="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 gap-1 focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px] transition-[color,box-shadow] overflow-hidden border-transparent bg-[--primary] text-[--primary-foreground] [a&]:hover:bg-[--primary]/90">
               ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}
             </span>
           </td>
-          <td class="td">
+          <td data-label="Status" class="td">
             <div class="flex items-center space-x-2">
               <label class="switch">
                 <input data-id="${user.id}" data-name="${user.name}"  class="switch-btn" type="checkbox" ${isActive ? "checked" : " "} />
@@ -389,23 +371,14 @@ class App {
               </span>
             </div>
           </td>
-          <td class="td text-gray-600">${user.createdAt}</td>
-          <td class="text-foreground h-10 px-2 align-middle font-medium whitespace-nowrap text-right">
+          <td data-label="Last Login" class="td text-gray-600">${user.createdAt.slice(0, 10) + " , " + user.createdAt.slice(11, 16)}</td>
+          <td data-label="Actions" class="text-foreground h-10 px-2 align-middle font-medium whitespace-nowrap text-right">
             <div class="flex items-center justify-end space-x-2">
               <button class="edit-btn inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px] aria-invalid:border-[--destructive] hover:bg-[--accent] hover:text-[--accent-foreground] dark:hover:bg-[--accent]/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5" data-id="${user.id}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4" aria-hidden="true">
-                  <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path>
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path></svg>
               </button>
-              <button class="delete-btn inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px] hover:bg-[--accent] hover:text-[--accent-foreground] dark:hover:bg-[--accent]/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5" data-id="${user.id}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 lucide-trash-2 w-4 h-4 text-red-500" aria-hidden="true">
-                  <path d="M10 11v6"></path>
-                  <path d="M14 11v6"></path>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-                  <path d="M3 6h18"></path>
-                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
+              <button data-name="${user.name}" class="delete-btn inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-[--ring] focus-visible:ring-[#a1a1a1]/50 focus-visible:ring-[3px] hover:bg-[--accent] hover:text-[--accent-foreground] dark:hover:bg-[--accent]/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5" data-id="${user.id}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 lucide-trash-2 w-4 h-4 text-red-500" aria-hidden="true"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
               </button>
             </div>
           </td>
@@ -416,9 +389,7 @@ class App {
     } catch (error) {
       this.userTableBody.innerHTML = `<tr><td colspan="9" class="text-center p-4">No users found.</td></tr>`;
     }
-    // this._syncSelectAllCheckboxState();
   }
-  // --- Pagination ---
 
   handlePageNumberClick(event) {
     const pageButton = event.target.closest(".page-number-btn");
@@ -460,15 +431,15 @@ class App {
     this.nextBtn.disabled = this.currentPage === totalPages || totalPages === 0;
 
     // به‌روزرسانی خلاصه pagination
-  if (this.totalUsers===0) {
-    this.paginationSummary.textContent = `Showing 0 – 0 of 0 users`;
-  } else {
-        const start = (this.currentPage - 1) * this.itemsPerPage + 1 || 1;
-    const end =
-      Math.min(start + this.itemsPerPage - 1, this.totalUsers) ||
-      this.totalUsers;
-    this.paginationSummary.textContent = `Showing ${this.totalUsers > 0 ? start : 0} – ${end} of ${this.totalUsers} users`;
-  }
+    if (this.totalUsers === 0) {
+      this.paginationSummary.textContent = `Showing 0 – 0 of 0 users`;
+    } else {
+      const start = (this.currentPage - 1) * this.itemsPerPage + 1 || 1;
+      const end =
+        Math.min(start + this.itemsPerPage - 1, this.totalUsers) ||
+        this.totalUsers;
+      this.paginationSummary.textContent = `Showing ${this.totalUsers > 0 ? start : 0} – ${end} of ${this.totalUsers} users`;
+    }
   }
 
   async handleFormSubmit(event) {
@@ -513,7 +484,8 @@ class App {
 
     if (deleteBtn) {
       const userId = deleteBtn.dataset.id;
-      if (confirm("Are you sure you want to delete this user?")) {
+      const userName = deleteBtn.dataset.name;
+      if (confirm(`Are you sure you want to delete ${userName}?`)) {
         await this.userService.deleteUser(userId);
         await this.displayUsers();
       }
@@ -547,8 +519,6 @@ class App {
     } else {
       this.selectedUserIds.delete(userId);
     }
-    // console.log("Selected IDs:", this.selectedUserIds);
-    // this._syncSelectAllCheckboxState();
   }
   // _extractSelectedUsers() {
   //   // تمام چک‌باکس‌هایی که تیک خورده‌اند را پیدا کن
@@ -595,41 +565,41 @@ class App {
   //   XLSX.writeFile(workbook, `Users-Export-${Date.now()}.xlsx`);
   // }
   _extractSelectedUsers() {
-  const checkedBoxes = document.querySelectorAll(".row-checkbox:checked");
+    const checkedBoxes = document.querySelectorAll(".row-checkbox:checked");
 
-  if (checkedBoxes.length === 0) {
-    alert("Please select at least one user to extract.");
-    return;
+    if (checkedBoxes.length === 0) {
+      alert("Please select at least one user to extract.");
+      return;
+    }
+
+    const selectedUserIds = Array.from(checkedBoxes).map(
+      (checkbox) => checkbox.dataset.userId
+    );
+
+    const usersToExport = this.displayedUsers.filter((user) =>
+      selectedUserIds.includes(user.id)
+    );
+
+    const dataToExport = usersToExport.map((user) => ({
+      Name: user.name,
+      Email: user.email,
+      Phone: user.phone,
+      Role: user.role,
+      Status: user.status ? "Active" : "Inactive",
+      CreatedAt: new Date(user.createdAt).toLocaleString(),
+    }));
+
+    const jsonStr = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `users-export-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
-
-  const selectedUserIds = Array.from(checkedBoxes).map(
-    (checkbox) => checkbox.dataset.userId
-  );
-
-  const usersToExport = this.displayedUsers.filter((user) =>
-    selectedUserIds.includes(user.id)
-  );
-
-  const dataToExport = usersToExport.map((user) => ({
-    Name: user.name,
-    Email: user.email,
-    Phone: user.phone,
-    Role: user.role,
-    Status: user.status ? "Active" : "Inactive",
-    CreatedAt: new Date(user.createdAt).toISOString(),
-  }));
-
-  const jsonStr = JSON.stringify(dataToExport, null, 2);
-  const blob = new Blob([jsonStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `users-export-${Date.now()}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
   _handleSelectAll(event) {
     const isChecked = event.target.checked;
 

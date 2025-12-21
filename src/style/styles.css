@@ -47,7 +47,7 @@
 
 @layer components {
   .custom-select {
-    @apply appearance-none bg-white text-[12.25px] py-2 px-3 pr-10 sm:w-[140px] rounded-md focus:outline-none bg-[--input-background];
+    @apply appearance-none bg-white text-[12.25px] py-2 px-3 pr-10 w-full sm:w-[140px] rounded-md focus:outline-none bg-[--input-background];
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
@@ -138,6 +138,9 @@
   td {
     @apply text-[#0a0a0a] h-10 px-2 align-middle whitespace-nowrap;
   }
+  td .switch{
+    @apply hidden;
+  }
 
   .switch {
     position: relative;
@@ -191,4 +194,91 @@
     -ms-transform: translateX(14px);
     transform: translateX(14px);
   }
+@media (max-width: 768px) {
+  thead {
+    display: none;
+  }
+
+  tr {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto;
+    gap: 0;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    /* border-radius: 0.5rem; */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+  }
+
+  td {
+    border: none;
+    padding: 0;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    min-width: 0; 
+  }
+
+  td::before {
+    content: none;
+  }
+
+
+  td[data-label="Select"],
+  td[data-label="Profile"] {
+    grid-row: 1 / span 4;
+    align-self: start;
+  }
+  td[data-label="Select"] { grid-column: 1; justify-content: center; }
+  td[data-label="Profile"] { grid-column: 2; }
+
+
+  td[data-label="Full Name"],
+  td[data-label="Email Address"],
+  td[data-label="Phone Number"] {
+    grid-column: 3 / span 2;
+  }
+  td[data-label="Full Name"] { grid-row: 1; padding-top: 0.5rem; }
+  td[data-label="Email Address"] { grid-row: 2; height: 1.5rem; }
+  td[data-label="Phone Number"] { grid-row: 3; height: 1.5rem; }
+
+
+  td[data-label="Role"] {
+    grid-column: 3; 
+    grid-row: 4;
+    padding-bottom: 0.5rem;
+  }
+  td[data-label="Status"] {
+    grid-column: 3; 
+    grid-row: 4;
+    padding-bottom: 0.5rem;
+    justify-items: end;
+    justify-content:center;
+
+  }
+
+
+  td[data-label="Actions"],
+  td[data-label="Last Login"] {
+    grid-column: 5; 
+    justify-content: flex-end;
+  }
+  td[data-label="Actions"] {
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+  td[data-label="Last Login"] {
+    grid-row: 4;
+    align-self: end;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+  }
+}
+
+
+
+
+
+
 }
