@@ -138,9 +138,7 @@
   td {
     @apply text-[#0a0a0a] h-10 px-2 align-middle whitespace-nowrap;
   }
-  td .switch{
-    @apply hidden;
-  }
+  
 
   .switch {
     position: relative;
@@ -204,13 +202,15 @@
     grid-template-columns: auto auto 1fr auto auto;
     gap: 0;
     padding: 1rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
+    /* margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border); */
     /* border-radius: 0.5rem; */
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 
   }
-
+td .switch{
+    @apply hidden;
+  }
   td {
     border: none;
     padding: 0;
@@ -274,6 +274,8 @@
     font-size: 0.8rem;
     color: var(--muted-foreground);
   }
+
+ 
 }
 
 

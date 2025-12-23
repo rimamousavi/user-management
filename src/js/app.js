@@ -520,50 +520,7 @@ class App {
       this.selectedUserIds.delete(userId);
     }
   }
-  // _extractSelectedUsers() {
-  //   // تمام چک‌باکس‌هایی که تیک خورده‌اند را پیدا کن
-  //   const checkedBoxes = document.querySelectorAll(".row-checkbox:checked");
 
-  //   if (checkedBoxes.length === 0) {
-  //     alert("Please select at least one user to extract.");
-  //     return;
-  //   }
-
-  //   // ID تمام کاربران انتخاب شده را استخراج کن
-  //   const selectedUserIds = Array.from(checkedBoxes).map(
-  //     (checkbox) => checkbox.dataset.userId
-  //   );
-
-  //   // حالا آبجکت کامل کاربران انتخاب شده را از لیستی که قبلا ذخیره کردیم، پیدا کن
-  //   const usersToExport = this.displayedUsers.filter((user) =>
-  //     selectedUserIds.includes(user.id)
-  //   );
-
-  //   // (اختیاری) می‌توانید انتخاب کنید کدام ستون‌ها را می‌خواهید استخراج کنید
-  //   const dataForSheet = usersToExport.map((user) => ({
-  //     Name: user.name,
-  //     Email: user.email,
-  //     Phone: user.phone,
-  //     Role: user.role,
-  //     Status: user.status ? "Active" : "Inactive",
-  //     "Created At": new Date(user.createdAt).toLocaleString(),
-  //   }));
-
-  //   // --- استفاده از کتابخانه SheetJS ---
-
-  //   // ۱. ساخت یک Worksheet از روی داده‌های JSON
-  //   const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
-
-  //   // ۲. ساخت یک Workbook جدید
-  //   const workbook = XLSX.utils.book_new();
-
-  //   // ۳. اضافه کردن Worksheet به Workbook
-  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Users"); // "Users" نام شیت در فایل اکسل خواهد بود
-
-  //   // ۴. تولید و دانلود فایل Excel
-  //   // نام فایل را می‌توان به صورت داینامیک تولید کرد
-  //   XLSX.writeFile(workbook, `Users-Export-${Date.now()}.xlsx`);
-  // }
   _extractSelectedUsers() {
     const checkedBoxes = document.querySelectorAll(".row-checkbox:checked");
 

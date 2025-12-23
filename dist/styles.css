@@ -531,6 +531,7 @@ video {
   display: none;
 }
 .custom-select {
+  width: 100%;
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
@@ -728,6 +729,104 @@ input:focus + .slider {
 input:checked + .slider:before {
     transform: translateX(14px);
   }
+@media (max-width: 768px) {
+  thead {
+    display: none;
+  }
+
+  tr {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto;
+    gap: 0;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    /* border-radius: 0.5rem; */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+  }
+td .switch {
+    display: none;
+  }
+  td {
+    border: none;
+    padding: 0;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    min-width: 0; 
+  }
+
+  td::before {
+    content: none;
+  }
+
+
+  td[data-label="Select"],
+  td[data-label="Profile"] {
+    grid-row: 1 / span 4;
+    align-self: start;
+  }
+  td[data-label="Select"] { grid-column: 1; justify-content: center; }
+  td[data-label="Profile"] { grid-column: 2; }
+
+
+  td[data-label="Full Name"],
+  td[data-label="Email Address"],
+  td[data-label="Phone Number"] {
+    grid-column: 3 / span 2;
+  }
+  td[data-label="Full Name"] { grid-row: 1; padding-top: 0.5rem; }
+  td[data-label="Email Address"] { grid-row: 2; height: 1.5rem; }
+  td[data-label="Phone Number"] { grid-row: 3; height: 1.5rem; }
+
+
+  td[data-label="Role"] {
+    grid-column: 3; 
+    grid-row: 4;
+    padding-bottom: 0.5rem;
+  }
+  td[data-label="Status"] {
+    grid-column: 3; 
+    grid-row: 4;
+    padding-bottom: 0.5rem;
+    justify-items: end;
+    justify-content:center;
+
+  }
+
+
+  td[data-label="Actions"],
+  td[data-label="Last Login"] {
+    grid-column: 5; 
+    justify-content: flex-end;
+  }
+  td[data-label="Actions"] {
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+  td[data-label="Last Login"] {
+    grid-row: 4;
+    align-self: end;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+  }
+
+  /* Responsive tfoot */
+  tfoot td {
+    padding: 1rem;
+  }
+
+  tfoot .flex.flex-row.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .flex.flex-row.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
 .fixed {
   position: fixed;
 }
@@ -846,6 +945,9 @@ input:checked + .slider:before {
 }
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+.flex-row {
+  flex-direction: row;
 }
 .flex-col {
   flex-direction: column;
@@ -966,10 +1068,6 @@ input:checked + .slider:before {
 }
 .bg-black\/50 {
   background-color: rgb(0 0 0 / 0.5);
-}
-.bg-gray-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
 }
 .bg-gray-200 {
   --tw-bg-opacity: 1;
@@ -1125,12 +1223,130 @@ input:checked + .slider:before {
   --ring: #a1a1a1;
 }
 
-.selection\:bg-\[--primary\] *::-moz-selection {
-  background-color: var(--primary);
+@media (min-width: 640px) {
+@media (max-width: 768px) {
+
+  /* Responsive tfoot */
+
+  tfoot .sm\:flex.flex-row.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .sm\:flex.flex-row.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Responsive tfoot */
+
+  tfoot .sm\:flex-row.flex.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .sm\:flex-row.flex.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Responsive tfoot */
+
+  tfoot .sm\:flex.flex-row.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .sm\:flex.flex-row.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Responsive tfoot */
+
+  tfoot .sm\:flex-row.flex.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .sm\:flex-row.flex.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
 }
 
-.selection\:bg-\[--primary\] *::selection {
-  background-color: var(--primary);
+@media (min-width: 768px) {
+@media (max-width: 768px) {
+
+  /* Responsive tfoot */
+
+  tfoot .md\:flex-row.flex.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .md\:flex-row.flex.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Responsive tfoot */
+
+  tfoot .md\:flex-row.flex.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .md\:flex-row.flex.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Responsive tfoot */
+
+  tfoot .md\:justify-between.flex.flex-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+}
+
+@media (min-width: 1024px) {
+@media (max-width: 768px) {
+
+  /* Responsive tfoot */
+
+  tfoot .lg\:flex-row.flex.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .lg\:flex-row.flex.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Responsive tfoot */
+
+  tfoot .lg\:flex-row.flex.space-x-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tfoot .lg\:flex-row.flex.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+}
+
+.selection\:bg-\[--primary-foreground\] *::-moz-selection {
+  background-color: var(--primary-foreground);
+}
+
+.selection\:bg-\[--primary-foreground\] *::selection {
+  background-color: var(--primary-foreground);
 }
 
 .selection\:text-\[--foreground\] *::-moz-selection {
@@ -1141,12 +1357,12 @@ input:checked + .slider:before {
   color: var(--foreground);
 }
 
-.selection\:bg-\[--primary\]::-moz-selection {
-  background-color: var(--primary);
+.selection\:bg-\[--primary-foreground\]::-moz-selection {
+  background-color: var(--primary-foreground);
 }
 
-.selection\:bg-\[--primary\]::selection {
-  background-color: var(--primary);
+.selection\:bg-\[--primary-foreground\]::selection {
+  background-color: var(--primary-foreground);
 }
 
 .selection\:text-\[--foreground\]::-moz-selection {
@@ -1180,10 +1396,6 @@ input:checked + .slider:before {
 
 .file\:font-medium::file-selector-button {
   font-weight: 500;
-}
-
-.file\:text-\[--foreground\]::file-selector-button {
-  color: var(--foreground);
 }
 
 .placeholder\:text-\[--muted-foreground\]::-moz-placeholder {
@@ -1341,11 +1553,6 @@ input:checked + .slider:before {
 
   .lg\:p-6 {
     padding: 1.5rem;
-  }
-
-  .lg\:px-6 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
   }
 }
 
