@@ -1,18 +1,15 @@
-// import * as XLSX from "sheetjs";
+
 
 function debounce(func, delay) {
   let timeoutId;
 
-  // تابع جدیدی که برگردانده می‌شود
   return function (...args) {
-    // هر بار که این تابع (مثلا با هر بار تایپ) اجرا می‌شود،
-    // تایمر قبلی را پاک می‌کنیم.
+
     clearTimeout(timeoutId);
 
-    // یک تایمر جدید تنظیم می‌کنیم.
+
     timeoutId = setTimeout(() => {
-      // فقط زمانی که تایمر تمام شد (یعنی کاربر تایپ را متوقف کرد)،
-      // تابع اصلی (func) را اجرا کن.
+
       func.apply(this, args);
     }, delay);
   };
@@ -33,83 +30,47 @@ class UserService {
 
   async getUsers(page, limit, filters, sort) {
     console.log(sort);
-    // شروع یک بلوک try-catch برای مدیریت خطاهای احتمالی (مانند قطع بودن شبکه).
-    try {
-      // ---- مرحله ۱: دریافت کاربران برای نمایش در صفحه فعلی ----
 
-      // یک آبجکت URL از آدرس پایه API می‌سازیم تا بتوانیم پارامترها را به راحتی به آن اضافه کنیم.
+    try {
+
       const url = new URL(this.apiUrl);
       if (limit !== "all") {
-        // اگر شماره صفحه‌ای (page) به تابع داده شده، آن را به عنوان پارامتر به URL اضافه کن (مثلاً: ?page=2).
+
         if (page) url.searchParams.append("page", page);
 
-        // اگر محدودیتی (limit) برای تعداد آیتم‌ها در هر صفحه داده شده، آن را هم به URL اضافه کن (مثلاً: &limit=5).
-        // if (limit) url.searchParams.append("limit", limit);
         if (limit) url.searchParams.append("limit", limit);
       }
 
-      // (کد محافظ) اگر هیچ فیلتری به تابع پاس داده نشده بود (مقدارش undefined بود)، آن را به یک آبجکت خالی تبدیل کن تا در خطوط بعدی خطا ندهد.
       filters = filters || {};
 
-      // اگر در آبجکت فیلترها، مقداری برای 'search' وجود داشت، آن را به پارامترهای URL اضافه کن.
       if (filters.search) url.searchParams.append("search", filters.search);
 
-      // اگر در آبجکت فیلترها، مقداری برای 'role' وجود داشت، آن را به پارامترهای URL اضافه کن.
       if (filters.role) url.searchParams.append("role", filters.role);
 
-      // اگر در آبجکت فیلترها، مقداری برای 'status' وجود داشت، آن را به پارامترهای URL اضافه کن.
       if (filters.status) url.searchParams.append("status", filters.status);
 
-      // این پارامترها فقط روی fetch اول تاثیر دارند، چون ترتیب در شمارش کل مهم نیست.
       if (sort && sort.sortBy) {
         url.searchParams.append("sortBy", sort.sortBy);
-        // پارامتر order اختیاری است، اما ما آن را هم اضافه می‌کنیم.
         if (sort.order) {
           url.searchParams.append("order", sort.order);
         }
       }
 
-      // درخواست اول را به API ارسال کن (با تمام پارامترها) و منتظر پاسخ بمان.
+
       const response = await fetch(url.toString());
-
-      // پاسخ را از فرمت JSON به یک آرایه جاوااسکریپت تبدیل کن. این آرایه فقط شامل کاربران صفحه فعلی است.
       const users = await response.json();
-
-      // ---- مرحله ۲: محاسبه تعداد کل کاربران منطبق با فیلترها ----
-
-      // یک آبجکت URL جدید برای درخواست دوم می‌سازیم. این درخواست برای شمارش تعداد کل است.
       const countUrl = new URL(this.apiUrl);
-
-      // (مهم) دوباره همان فیلترها را روی این URL جدید هم اعمال می‌کنیم تا شمارش ما دقیق باشد.
-      // اگر فیلتر 'search' وجود داشت، آن را اضافه کن.
       if (filters.search)
         countUrl.searchParams.append("search", filters.search);
-
-      // اگر فیلتر 'role' وجود داشت،آن را به پارامترهای URL اضافه کن.
       if (filters.role) countUrl.searchParams.append("role", filters.role);
-
-      // اگر فیلتر 'status' وجود داشت، آن را به پارامترهای URL اضافه کن.
       if (filters.status)
         countUrl.searchParams.append("status", filters.status);
-
-      // درخواست دوم را ارسال کن (این بار بدون page و limit) تا *تمام* کاربران منطبق با فیلترها را بگیریم.
       const allUsersResponse = await fetch(countUrl.toString());
-
-      // پاسخ دوم را به آرایه جاوااسکریپت تبدیل کن. این آرایه شامل همه کاربران فیلتر شده است.
       const allUsers = await allUsersResponse.json();
-
-      // (محاسبه نهایی) چک کن آیا 'allUsers' یک آرایه است؟ اگر بله، طول (تعداد اعضای) آن را در totalCount بریز. اگر نه، مقدار 0 را قرار بده.
       const totalCount = Array.isArray(allUsers) ? allUsers.length : 0;
-
-      // یک آبجکت شامل هر دو نتیجه (لیست کاربران صفحه فعلی و تعداد کل) را برگردان.
       return { users, totalCount };
-
-      // اگر در هر یک از مراحل بالا خطایی رخ داد...
     } catch (error) {
-      // خطا را در کنسول نمایش بده تا برنامه‌نویس آن را ببیند.
       console.error("Error fetching users:", error);
-
-      // یک نتیجه خالی برگردان تا برنامه کرش نکند و UI بتواند وضعیت "بدون کاربر" را نمایش دهد.
       return { users: [], totalCount: 0 };
     }
   }
